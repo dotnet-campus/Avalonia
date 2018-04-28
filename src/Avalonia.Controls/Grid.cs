@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Avalonia.Collections;
+using Avalonia.Controls.Utils;
+using JetBrains.Annotations;
 
 namespace Avalonia.Controls
 {
@@ -190,299 +193,57 @@ namespace Avalonia.Controls
         /// <returns>The desired size of the control.</returns>
         protected override Size MeasureOverride(Size constraint)
         {
-            Size totalSize = constraint;
-            int colCount = ColumnDefinitions.Count;
-            int rowCount = RowDefinitions.Count;
-            double totalStarsX = 0;
-            double totalStarsY = 0;
-            bool emptyRows = rowCount == 0;
-            bool emptyCols = colCount == 0;
-            bool hasChildren = Children.Count > 0;
+            var rowLayout = new GridLayout(RowDefinitions);
+            var columnLayout = new GridLayout(ColumnDefinitions);
+            var heightList = rowLayout.Measure(constraint.Height);
+            var widthList = columnLayout.Measure(constraint.Width);
 
-            if (emptyRows)
+            foreach (var child in Children.OfType<Control>())
             {
-                rowCount = 1;
+                var (row, rowSpan) = GetSafeSpan(heightList.Count, GetRow(child), GetRowSpan(child));
+                var (column, columnSpan) = GetSafeSpan(widthList.Count, GetColumn(child), GetColumnSpan(child));
+
+
+                child.Measure(new Size(widthList[row], heightList[column]));
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="values"></param>
+        /// <param name="index"></param>
+        /// <param name="span"></param>
+        /// <returns></returns>
+        private static double AggregateSpanValues(IList<double> values, int index, int span)
+        {
+
+        }
+
+        /// <summary>
+        /// Gets the safe row/column and rowspan/columnspan for a specified range.
+        /// The user may assign the row/column properties out of the row count or column cout, this method helps to keep them in.
+        /// </summary>
+        /// <param name="length">The rows count or the columns count.</param>
+        /// <param name="userIndex">The row or column that the user assigned.</param>
+        /// <param name="userSpan">The rowspan or columnspan that the user assigned.</param>
+        /// <returns>The safe row/column and rowspan/columnspan.</returns>
+        [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static (double index, double span) GetSafeSpan(int length, int userIndex, int userSpan)
+        {
+            var index = userIndex;
+            var span = userSpan;
+            if (userIndex > length)
+            {
+                index = length;
+                span = 1;
+            }
+            else if (userIndex + userSpan > length)
+            {
+                span = length - userIndex + 1;
             }
 
-            if (emptyCols)
-            {
-                colCount = 1;
-            }
-
-            CreateMatrices(rowCount, colCount);
-
-            if (emptyRows)
-            {
-                _rowMatrix[0, 0] = new Segment(0, 0, double.PositiveInfinity, GridUnitType.Star);
-                _rowMatrix[0, 0].Stars = 1.0;
-                totalStarsY += 1.0;
-            }
-            else
-            {
-                for (int i = 0; i < rowCount; i++)
-                {
-                    RowDefinition rowdef = RowDefinitions[i];
-                    GridLength height = rowdef.Height;
-
-                    rowdef.ActualHeight = double.PositiveInfinity;
-                    _rowMatrix[i, i] = new Segment(0, rowdef.MinHeight, rowdef.MaxHeight, height.GridUnitType);
-
-                    if (height.GridUnitType == GridUnitType.Pixel)
-                    {
-                        _rowMatrix[i, i].OfferedSize = Clamp(height.Value, _rowMatrix[i, i].Min, _rowMatrix[i, i].Max);
-                        _rowMatrix[i, i].DesiredSize = _rowMatrix[i, i].OfferedSize;
-                        rowdef.ActualHeight = _rowMatrix[i, i].OfferedSize;
-                    }
-                    else if (height.GridUnitType == GridUnitType.Star)
-                    {
-                        _rowMatrix[i, i].OfferedSize = Clamp(0, _rowMatrix[i, i].Min, _rowMatrix[i, i].Max);
-                        _rowMatrix[i, i].DesiredSize = _rowMatrix[i, i].OfferedSize;
-
-                        _rowMatrix[i, i].Stars = height.Value;
-                        totalStarsY += height.Value;
-                    }
-                    else if (height.GridUnitType == GridUnitType.Auto)
-                    {
-                        _rowMatrix[i, i].OfferedSize = Clamp(0, _rowMatrix[i, i].Min, _rowMatrix[i, i].Max);
-                        _rowMatrix[i, i].DesiredSize = _rowMatrix[i, i].OfferedSize;
-                    }
-                }
-            }
-
-            if (emptyCols)
-            {
-                _colMatrix[0, 0] = new Segment(0, 0, double.PositiveInfinity, GridUnitType.Star);
-                _colMatrix[0, 0].Stars = 1.0;
-                totalStarsX += 1.0;
-            }
-            else
-            {
-                for (int i = 0; i < colCount; i++)
-                {
-                    ColumnDefinition coldef = ColumnDefinitions[i];
-                    GridLength width = coldef.Width;
-
-                    coldef.ActualWidth = double.PositiveInfinity;
-                    _colMatrix[i, i] = new Segment(0, coldef.MinWidth, coldef.MaxWidth, width.GridUnitType);
-
-                    if (width.GridUnitType == GridUnitType.Pixel)
-                    {
-                        _colMatrix[i, i].OfferedSize = Clamp(width.Value, _colMatrix[i, i].Min, _colMatrix[i, i].Max);
-                        _colMatrix[i, i].DesiredSize = _colMatrix[i, i].OfferedSize;
-                        coldef.ActualWidth = _colMatrix[i, i].OfferedSize;
-                    }
-                    else if (width.GridUnitType == GridUnitType.Star)
-                    {
-                        _colMatrix[i, i].OfferedSize = Clamp(0, _colMatrix[i, i].Min, _colMatrix[i, i].Max);
-                        _colMatrix[i, i].DesiredSize = _colMatrix[i, i].OfferedSize;
-
-                        _colMatrix[i, i].Stars = width.Value;
-                        totalStarsX += width.Value;
-                    }
-                    else if (width.GridUnitType == GridUnitType.Auto)
-                    {
-                        _colMatrix[i, i].OfferedSize = Clamp(0, _colMatrix[i, i].Min, _colMatrix[i, i].Max);
-                        _colMatrix[i, i].DesiredSize = _colMatrix[i, i].OfferedSize;
-                    }
-                }
-            }
-
-            List<GridNode> sizes = new List<GridNode>();
-            GridNode node;
-            GridNode separator = new GridNode(null, 0, 0, 0);
-            int separatorIndex;
-
-            sizes.Add(separator);
-
-            // Pre-process the grid children so that we know what types of elements we have so
-            // we can apply our special measuring rules.
-            GridWalker gridWalker = new GridWalker(this, _rowMatrix, _colMatrix);
-
-            for (int i = 0; i < 6; i++)
-            {
-                // These bools tell us which grid element type we should be measuring. i.e.
-                // 'star/auto' means we should measure elements with a star row and auto col
-                bool autoAuto = i == 0;
-                bool starAuto = i == 1;
-                bool autoStar = i == 2;
-                bool starAutoAgain = i == 3;
-                bool nonStar = i == 4;
-                bool remainingStar = i == 5;
-
-                if (hasChildren)
-                {
-                    ExpandStarCols(totalSize);
-                    ExpandStarRows(totalSize);
-                }
-
-                foreach (Control child in Children)
-                {
-                    int col, row;
-                    int colspan, rowspan;
-                    double childSizeX = 0;
-                    double childSizeY = 0;
-                    bool starCol = false;
-                    bool starRow = false;
-                    bool autoCol = false;
-                    bool autoRow = false;
-
-                    col = Math.Min(GetColumn(child), colCount - 1);
-                    row = Math.Min(GetRow(child), rowCount - 1);
-                    colspan = Math.Min(GetColumnSpan(child), colCount - col);
-                    rowspan = Math.Min(GetRowSpan(child), rowCount - row);
-
-                    for (int r = row; r < row + rowspan; r++)
-                    {
-                        starRow |= _rowMatrix[r, r].Type == GridUnitType.Star;
-                        autoRow |= _rowMatrix[r, r].Type == GridUnitType.Auto;
-                    }
-
-                    for (int c = col; c < col + colspan; c++)
-                    {
-                        starCol |= _colMatrix[c, c].Type == GridUnitType.Star;
-                        autoCol |= _colMatrix[c, c].Type == GridUnitType.Auto;
-                    }
-
-                    // This series of if statements checks whether or not we should measure
-                    // the current element and also if we need to override the sizes
-                    // passed to the Measure call.
-
-                    // If the element has Auto rows and Auto columns and does not span Star
-                    // rows/cols it should only be measured in the auto_auto phase.
-                    // There are similar rules governing auto/star and star/auto elements.
-                    // NOTE: star/auto elements are measured twice. The first time with
-                    // an override for height, the second time without it.
-                    if (autoRow && autoCol && !starRow && !starCol)
-                    {
-                        if (!autoAuto)
-                        {
-                            continue;
-                        }
-
-                        childSizeX = double.PositiveInfinity;
-                        childSizeY = double.PositiveInfinity;
-                    }
-                    else if (starRow && autoCol && !starCol)
-                    {
-                        if (!(starAuto || starAutoAgain))
-                        {
-                            continue;
-                        }
-
-                        if (starAuto && gridWalker.HasAutoStar)
-                        {
-                            childSizeY = double.PositiveInfinity;
-                        }
-
-                        childSizeX = double.PositiveInfinity;
-                    }
-                    else if (autoRow && starCol && !starRow)
-                    {
-                        if (!autoStar)
-                        {
-                            continue;
-                        }
-
-                        childSizeY = double.PositiveInfinity;
-                    }
-                    else if ((autoRow || autoCol) && !(starRow || starCol))
-                    {
-                        if (!nonStar)
-                        {
-                            continue;
-                        }
-
-                        if (autoRow)
-                        {
-                            childSizeY = double.PositiveInfinity;
-                        }
-
-                        if (autoCol)
-                        {
-                            childSizeX = double.PositiveInfinity;
-                        }
-                    }
-                    else if (!(starRow || starCol))
-                    {
-                        if (!nonStar)
-                        {
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        if (!remainingStar)
-                        {
-                            continue;
-                        }
-                    }
-
-                    for (int r = row; r < row + rowspan; r++)
-                    {
-                        childSizeY += _rowMatrix[r, r].OfferedSize;
-                    }
-
-                    for (int c = col; c < col + colspan; c++)
-                    {
-                        childSizeX += _colMatrix[c, c].OfferedSize;
-                    }
-
-                    child.Measure(new Size(childSizeX, childSizeY));
-                    Size desired = child.DesiredSize;
-
-                    // Elements distribute their height based on two rules:
-                    // 1) Elements with rowspan/colspan == 1 distribute their height first
-                    // 2) Everything else distributes in a LIFO manner.
-                    // As such, add all UIElements with rowspan/colspan == 1 after the separator in
-                    // the list and everything else before it. Then to process, just keep popping
-                    // elements off the end of the list.
-                    if (!starAuto)
-                    {
-                        node = new GridNode(_rowMatrix, row + rowspan - 1, row, desired.Height);
-                        separatorIndex = sizes.IndexOf(separator);
-                        sizes.Insert(node.Row == node.Column ? separatorIndex + 1 : separatorIndex, node);
-                    }
-
-                    node = new GridNode(_colMatrix, col + colspan - 1, col, desired.Width);
-
-                    separatorIndex = sizes.IndexOf(separator);
-                    sizes.Insert(node.Row == node.Column ? separatorIndex + 1 : separatorIndex, node);
-                }
-
-                sizes.Remove(separator);
-
-                while (sizes.Count > 0)
-                {
-                    node = sizes.Last();
-                    node.Matrix[node.Row, node.Column].DesiredSize = Math.Max(node.Matrix[node.Row, node.Column].DesiredSize, node.Size);
-                    AllocateDesiredSize(rowCount, colCount);
-                    sizes.Remove(node);
-                }
-
-                sizes.Add(separator);
-            }
-
-            // Once we have measured and distributed all sizes, we have to store
-            // the results. Every time we want to expand the rows/cols, this will
-            // be used as the baseline.
-            SaveMeasureResults();
-
-            sizes.Remove(separator);
-
-            double gridSizeX = 0;
-            double gridSizeY = 0;
-
-            for (int c = 0; c < colCount; c++)
-            {
-                gridSizeX += _colMatrix[c, c].DesiredSize;
-            }
-
-            for (int r = 0; r < rowCount; r++)
-            {
-                gridSizeY += _rowMatrix[r, r].DesiredSize;
-            }
-
-            return new Size(gridSizeX, gridSizeY);
+            return (index, span);
         }
 
         /// <summary>
