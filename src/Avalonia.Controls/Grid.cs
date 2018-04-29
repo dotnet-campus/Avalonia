@@ -193,30 +193,40 @@ namespace Avalonia.Controls
         /// <returns>The desired size of the control.</returns>
         protected override Size MeasureOverride(Size constraint)
         {
-            var rowLayout = new GridLayout(RowDefinitions);
-            var columnLayout = new GridLayout(ColumnDefinitions);
-            var heightList = rowLayout.Measure(constraint.Height);
-            var widthList = columnLayout.Measure(constraint.Width);
-
+            // Measure the children to get all the desired size.
             foreach (var child in Children.OfType<Control>())
             {
-                var (row, rowSpan) = GetSafeSpan(heightList.Count, GetRow(child), GetRowSpan(child));
-                var (column, columnSpan) = GetSafeSpan(widthList.Count, GetColumn(child), GetColumnSpan(child));
-
-
-                child.Measure(new Size(widthList[row], heightList[column]));
+                child.Measure(constraint);
             }
+
+            return constraint;
         }
 
         /// <summary>
-        /// 
+        /// Arranges the grid's children.
         /// </summary>
-        /// <param name="values"></param>
-        /// <param name="index"></param>
-        /// <param name="span"></param>
-        /// <returns></returns>
-        private static double AggregateSpanValues(IList<double> values, int index, int span)
+        /// <param name="finalSize">The size allocated to the control.</param>
+        /// <returns>The space taken.</returns>
+        protected override Size ArrangeOverride(Size finalSize)
         {
+            // Calculate row height list and column width list.
+            var rowLayout = new GridLayout(RowDefinitions);
+            var columnLayout = new GridLayout(ColumnDefinitions);
+            var heightList = rowLayout.Measure(finalSize.Height);
+            var widthList = columnLayout.Measure(finalSize.Width);
+
+            var rowMeasure = new Dictionary<Control, (double row, double rowspan)>();
+            var columnMeasure = new Dictionary<Control, (double column, double columnspan)>();
+            foreach (var child in Children.OfType<Control>().OrderBy(GetRow))
+            {
+                var (row, rowSpan) = GetSafeSpan(heightList.Count, GetRow(child), GetRowSpan(child));
+                rowMeasure.Add(child, (row, rowSpan));
+            }
+            foreach (var child in Children.OfType<Control>().OrderBy(GetColumn))
+            {
+                var (column, columnSpan) = GetSafeSpan(widthList.Count, GetColumn(child), GetColumnSpan(child));
+                columnMeasure.Add(child, (column, columnSpan));
+            }
 
         }
 
@@ -244,93 +254,6 @@ namespace Avalonia.Controls
             }
 
             return (index, span);
-        }
-
-        /// <summary>
-        /// Arranges the grid's children.
-        /// </summary>
-        /// <param name="finalSize">The size allocated to the control.</param>
-        /// <returns>The space taken.</returns>
-        protected override Size ArrangeOverride(Size finalSize)
-        {
-            int colCount = ColumnDefinitions.Count;
-            int rowCount = RowDefinitions.Count;
-            int colMatrixDim = _colMatrix.GetLength(0);
-            int rowMatrixDim = _rowMatrix.GetLength(0);
-
-            RestoreMeasureResults();
-
-            double totalConsumedX = 0;
-            double totalConsumedY = 0;
-
-            for (int c = 0; c < colMatrixDim; c++)
-            {
-                _colMatrix[c, c].OfferedSize = _colMatrix[c, c].DesiredSize;
-                totalConsumedX += _colMatrix[c, c].OfferedSize;
-            }
-
-            for (int r = 0; r < rowMatrixDim; r++)
-            {
-                _rowMatrix[r, r].OfferedSize = _rowMatrix[r, r].DesiredSize;
-                totalConsumedY += _rowMatrix[r, r].OfferedSize;
-            }
-
-            if (totalConsumedX != finalSize.Width)
-            {
-                ExpandStarCols(finalSize);
-            }
-
-            if (totalConsumedY != finalSize.Height)
-            {
-                ExpandStarRows(finalSize);
-            }
-
-            for (int c = 0; c < colCount; c++)
-            {
-                ColumnDefinitions[c].ActualWidth = _colMatrix[c, c].OfferedSize;
-            }
-
-            for (int r = 0; r < rowCount; r++)
-            {
-                RowDefinitions[r].ActualHeight = _rowMatrix[r, r].OfferedSize;
-            }
-
-            foreach (Control child in Children)
-            {
-                int col = Math.Min(GetColumn(child), colMatrixDim - 1);
-                int row = Math.Min(GetRow(child), rowMatrixDim - 1);
-                int colspan = Math.Min(GetColumnSpan(child), colMatrixDim - col);
-                int rowspan = Math.Min(GetRowSpan(child), rowMatrixDim - row);
-
-                double childFinalX = 0;
-                double childFinalY = 0;
-                double childFinalW = 0;
-                double childFinalH = 0;
-
-                for (int c = 0; c < col; c++)
-                {
-                    childFinalX += _colMatrix[c, c].OfferedSize;
-                }
-
-                for (int c = col; c < col + colspan; c++)
-                {
-                    childFinalW += _colMatrix[c, c].OfferedSize;
-                }
-
-                for (int r = 0; r < row; r++)
-                {
-                    childFinalY += _rowMatrix[r, r].OfferedSize;
-                }
-
-                for (int r = row; r < row + rowspan; r++)
-                {
-                    childFinalH += _rowMatrix[r, r].OfferedSize;
-                }
-
-                child.Arrange(new Rect(childFinalX, childFinalY, childFinalW, childFinalH));
-            }
-
-            return finalSize;
         }
 
         private static double Clamp(double val, double min, double max)
