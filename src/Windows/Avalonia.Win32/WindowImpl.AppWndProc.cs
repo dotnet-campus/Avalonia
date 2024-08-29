@@ -165,7 +165,7 @@ namespace Avalonia.Win32
                     {
                         requestDpi = _dpi;
                     }
-                                        
+
                     return LoadIcon(requestIcon, requestDpi)?.Handle ?? default;
 
                 case WindowsMessage.WM_KEYDOWN:
@@ -760,7 +760,7 @@ namespace Avalonia.Win32
                     {
                         LostFocus?.Invoke();
                     }
-                   
+
                     break;
 
                 case WindowsMessage.WM_INPUTLANGCHANGE:
@@ -1067,8 +1067,11 @@ namespace Avalonia.Win32
         }
         private RawPointerPoint CreateRawPointerPoint(POINTER_TOUCH_INFO info)
         {
-            var pointerInfo = info.pointerInfo;
-            var point = PointToClient(new PixelPoint(pointerInfo.ptPixelLocationX, pointerInfo.ptPixelLocationY));
+            GetPointerDeviceRects(info.pointerInfo.sourceDevice, out var pointerDeviceRect, out var displayRect);
+            var himetricLocation = new Point(
+                info.pointerInfo.ptHimetricLocationX * displayRect.Width / (double)pointerDeviceRect.Width,
+                info.pointerInfo.ptHimetricLocationY * displayRect.Height / (double)pointerDeviceRect.Height);
+            var point = PointToClient(himetricLocation);
 
             var pointerPoint = new RawPointerPoint
             {
