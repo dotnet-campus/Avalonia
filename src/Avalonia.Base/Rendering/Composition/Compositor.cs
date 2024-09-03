@@ -39,6 +39,7 @@ namespace Avalonia.Rendering.Composition
         private readonly List<Action> _pendingServerCompositorPostTargetJobs = new();
         private DiagnosticTextRenderer? _diagnosticTextRenderer;
         private readonly Action _triggerCommitRequested;
+        private readonly DispatcherOptions _dispatcherOptions;
 
         internal IEasing DefaultEasing { get; }
 
@@ -90,6 +91,7 @@ namespace Avalonia.Rendering.Composition
             _batchObjectPool = new(reclaimBuffersImmediately);
             _server = new ServerCompositor(loop, gpu, options, _batchObjectPool, _batchMemoryPool);
             _triggerCommitRequested = () => scheduler.CommitRequested(this);
+            _dispatcherOptions = AvaloniaLocator.Current.GetService<DispatcherOptions>() ?? new();
 
             DefaultEasing = new SplineEasing(new KeySpline(0.25, 0.1, 0.25, 1.0));
         }
@@ -112,7 +114,7 @@ namespace Avalonia.Rendering.Composition
                 using var _ = NonPumpingLockHelper.Use();
                 _nextCommit = new ();
                 var pending = _pendingBatch;
-                if (pending != null)
+                if (pending != null && !_dispatcherOptions.InstantRendering)
                     pending.Processed.ContinueWith(
                         _ => Dispatcher.Post(_triggerCommitRequested, DispatcherPriority.Send),
                         CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
