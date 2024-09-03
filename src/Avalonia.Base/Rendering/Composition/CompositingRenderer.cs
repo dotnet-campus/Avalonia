@@ -14,7 +14,7 @@ using Avalonia.VisualTree;
 namespace Avalonia.Rendering.Composition;
 
 /// <summary>
-/// A renderer that utilizes <see cref="Avalonia.Rendering.Composition.Compositor"/> to render the visual tree 
+/// A renderer that utilizes <see cref="Avalonia.Rendering.Composition.Compositor"/> to render the visual tree
 /// </summary>
 internal class CompositingRenderer : IRendererWithCompositor, IHitTester
 {
@@ -31,7 +31,7 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
     private bool _isDisposed;
 
     internal CompositionTarget CompositionTarget { get; }
-    
+
     /// <inheritdoc/>
     public RendererDiagnostics Diagnostics { get; }
 
@@ -81,7 +81,7 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
         _queuedUpdate = true;
         _compositor.RequestCompositionUpdate(_update);
     }
-    
+
     /// <inheritdoc/>
     public void AddDirty(Visual visual)
     {
@@ -103,7 +103,7 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
                 yield break;
             rootVisual = root.CompositionVisual;
         }
-        
+
         Func<CompositionVisual, bool>? f = null;
         if (filter != null)
             f = v =>
@@ -152,7 +152,7 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
             var comp = visual.CompositionVisual;
             if(comp == null)
                 continue;
-            
+
             visual.SynchronizeCompositionProperties();
 
             try
@@ -164,7 +164,7 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
             {
                 _recorder.Reset();
             }
-            
+
             visual.SynchronizeCompositionChildVisuals();
         }
         foreach(var v in _recalculateChildren)
@@ -172,10 +172,10 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
                 v.SynchronizeCompositionChildVisuals();
         _dirty.Clear();
         _recalculateChildren.Clear();
-        
+
         CompositionTarget.PixelSize = PixelSize.FromSizeRounded(_root.ClientSize, _root.RenderScaling);
         CompositionTarget.Scaling = _root.RenderScaling;
-        
+
         var commit = _compositor.RequestCommitAsync();
         if (!_queuedSceneInvalidation)
         {
@@ -190,7 +190,7 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
 
     public void TriggerSceneInvalidatedForUnitTests(Rect rect) =>
         SceneInvalidated?.Invoke(this, new SceneInvalidatedEventArgs(_root, rect));
-    
+
     private void Update()
     {
         if(_updating)
@@ -241,7 +241,7 @@ internal class CompositingRenderer : IRendererWithCompositor, IHitTester
         => Compositor.TryGetRenderInterfaceFeature(featureType);
 
     public bool IsDisposed => _isDisposed;
-    
+
     /// <inheritdoc />
     public void Dispose()
     {

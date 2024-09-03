@@ -26,11 +26,12 @@ internal partial class MediaContext : ICompositorScheduler
 
     private List<Action>? _invokeOnRenderCallbacks;
     private readonly Stack<List<Action>> _invokeOnRenderCallbackListPool = new();
+    private readonly DispatcherOptions _dispatcherOptions;
 
     private readonly DispatcherTimer _animationsTimer = new(DispatcherPriority.Render)
     {
         // Since this timer is used to drive animations that didn't contribute to the previous frame at all
-        // We can safely use 16ms interval until we fix our animation system to actually report the next expected 
+        // We can safely use 16ms interval until we fix our animation system to actually report the next expected
         // frame
         Interval = TimeSpan.FromMilliseconds(16)
     };
@@ -49,8 +50,14 @@ internal partial class MediaContext : ICompositorScheduler
             _animationsTimer.Stop();
             ScheduleRender(false);
         };
+        _dispatcherOptions = new DispatcherOptions();
     }
-    
+
+    private MediaContext(Dispatcher dispatcher, DispatcherOptions dispatcherOptions) : this(dispatcher, dispatcherOptions.InputStarvationTimeout)
+    {
+        _dispatcherOptions = dispatcherOptions;
+    }
+
     public static MediaContext Instance
     {
         get
@@ -62,14 +69,14 @@ internal partial class MediaContext : ICompositorScheduler
             if (context == null)
             {
                 var opts = AvaloniaLocator.Current.GetService<DispatcherOptions>() ?? new();
-                context = new MediaContext(Dispatcher.UIThread, opts.InputStarvationTimeout);
+                context = new MediaContext(Dispatcher.UIThread, opts);
                 AvaloniaLocator.CurrentMutable.Bind<MediaContext>().ToConstant(context);
             }
 
             return context;
         }
     }
-    
+
     /// <summary>
     /// Schedules the next render operation, handles render throttling for input processing
     /// </summary>
@@ -86,9 +93,9 @@ internal partial class MediaContext : ICompositorScheduler
         // which can cause a "freeze"-like state when UI is being updated, but input is never being processed
         // So here we inject an operation with Input priority to check if Input wasn't being processed
         // for a long time. If that's the case the next rendering operation will be scheduled to happen after all pending input
-        
+
         var priority = DispatcherPriority.Render;
-        
+
         if (_inputMarkerOp == null)
         {
             _inputMarkerOp = _dispatcher.InvokeAsync(_inputMarkerHandler, DispatcherPriority.Input);
@@ -103,7 +110,7 @@ internal partial class MediaContext : ICompositorScheduler
         _nextRenderOp = renderOp;
         _dispatcher.InvokeAsyncImpl(renderOp, CancellationToken.None);
     }
-    
+
     /// <summary>
     /// This handles the _inputMarkerOp message.  We're using
     /// _inputMarkerOp to determine if input priority dispatcher ops
@@ -128,7 +135,7 @@ internal partial class MediaContext : ICompositorScheduler
             _isRendering = false;
         }
     }
-    
+
     private void RenderCore()
     {
         var now = _time.Elapsed;
@@ -140,7 +147,7 @@ internal partial class MediaContext : ICompositorScheduler
         for (var c = 0; c < 10; c++)
         {
             FireInvokeOnRenderCallbacks();
-            
+
             if (_clock.HasNewSubscriptions)
             {
                 _clock.PulseNewSubscriptions();
@@ -149,11 +156,11 @@ internal partial class MediaContext : ICompositorScheduler
 
             break;
         }
-        
+
         if (_requestedCommits.Count > 0 || _clock.HasSubscriptions)
         {
             _animationsAreWaitingForComposition = CommitCompositorsWithThrottling();
-            if (!_animationsAreWaitingForComposition && _clock.HasSubscriptions) 
+            if (!_animationsAreWaitingForComposition && _clock.HasSubscriptions)
                 _animationsTimer.Start();
         }
     }
@@ -201,9 +208,9 @@ internal partial class MediaContext : ICompositorScheduler
                 var callbacks = _invokeOnRenderCallbacks!;
                 _invokeOnRenderCallbacks = null;
 
-                for (int i = 0; i < count; i++) 
+                for (int i = 0; i < count; i++)
                     callbacks[i].Invoke();
-                
+
                 callbacks.Clear();
                 _invokeOnRenderCallbackListPool.Push(callbacks);
 
@@ -230,10 +237,10 @@ internal partial class MediaContext : ICompositorScheduler
         if (_invokeOnRenderCallbacks == null)
             _invokeOnRenderCallbacks =
                 _invokeOnRenderCallbackListPool.Count > 0 ? _invokeOnRenderCallbackListPool.Pop() : new();
-        
+
         _invokeOnRenderCallbacks.Add(callback);
 
-        if (!_isRendering) 
+        if (!_isRendering)
             ScheduleRender(true);
     }
 }

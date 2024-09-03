@@ -11,7 +11,7 @@ namespace Avalonia.Media;
 partial class MediaContext
 {
     private bool _scheduleCommitOnLastCompositionBatchCompletion;
-    
+
     /// <summary>
     /// Actually sends the current batch to the compositor and does the required housekeeping
     /// This is the only place that should be allowed to call Commit
@@ -21,19 +21,26 @@ partial class MediaContext
         var commit = compositor.Commit();
         _requestedCommits.Remove(compositor);
         _pendingCompositionBatches[compositor] = commit;
-        commit.Processed.ContinueWith(_ =>
-            _dispatcher.Post(() => CompositionBatchFinished(compositor, commit), DispatcherPriority.Send),
-            TaskContinuationOptions.ExecuteSynchronously);
+        if (_dispatcherOptions.InstantRendering)
+        {
+            CompositionBatchFinished(compositor, commit);
+        }
+        else
+        {
+            commit.Processed.ContinueWith(_ =>
+                    _dispatcher.Post(() => CompositionBatchFinished(compositor, commit), DispatcherPriority.Send),
+                TaskContinuationOptions.ExecuteSynchronously);
+        }
         return commit;
     }
-    
+
     /// <summary>
     /// Handles batch completion, required to re-schedule a render pass if one was skipped due to compositor throttling
     /// </summary>
     private void CompositionBatchFinished(Compositor compositor, CompositionBatch batch)
     {
         // Check if it was the last commited batch, since sometimes we are forced to send a new
-        // one without waiting for the previous one to complete  
+        // one without waiting for the previous one to complete
         if (_pendingCompositionBatches.TryGetValue(compositor, out var waitingForBatch) && waitingForBatch == batch)
             _pendingCompositionBatches.Remove(compositor);
 
@@ -57,7 +64,7 @@ partial class MediaContext
 
     void ScheduleRenderForAnimationsIfNeeded()
     {
-        if (_clock.HasSubscriptions) 
+        if (_clock.HasSubscriptions)
             ScheduleRender(false);
     }
 
@@ -75,18 +82,18 @@ partial class MediaContext
             // Previous commit isn't handled yet
             return true;
         }
-        
+
         if (_requestedCommits.Count == 0)
             // Nothing to do, and there are no pending commits
             return false;
-        
+
         foreach (var c in _requestedCommits.ToArray())
             CommitCompositor(c);
-        
+
         _requestedCommits.Clear();
         return true;
     }
-    
+
     /// <summary>
     /// Executes a synchronous commit when we need to wait for composition jobs to be done
     /// Is used in resize and TopLevel destruction scenarios
@@ -112,7 +119,7 @@ partial class MediaContext
             compositor.Server.Render(catchExceptions);
         }
     }
-    
+
     /// <summary>
     /// This method handles synchronous rendering of a surface when requested by the OS (typically during the resize)
     /// </summary>
@@ -126,16 +133,16 @@ partial class MediaContext
 
     /// <summary>
     /// This method handles synchronous destruction of the composition target, so we are guaranteed
-    /// to release all resources when a TopLevel is being destroyed 
+    /// to release all resources when a TopLevel is being destroyed
     /// </summary>
     public void SyncDisposeCompositionTarget(CompositionTarget compositionTarget)
     {
         compositionTarget.Dispose();
-        
+
         // TODO: introduce a way to skip any actual rendering for other targets and only do a dispose?
         SyncCommit(compositionTarget.Compositor, false, true);
     }
-    
+
     /// <summary>
     /// This method schedules a render when something has called RequestCommitAsync
     /// This can be triggered by user code outside of our normal layout and rendering
