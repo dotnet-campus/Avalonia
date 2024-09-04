@@ -18,7 +18,7 @@ namespace Avalonia.Controls.ApplicationLifetimes
         private CancellationTokenSource? _cts;
         private bool _isShuttingDown;
         private readonly AvaloniaList<Window> _windows = new();
-        private CompositeDisposable? _compositeDisposable; 
+        private CompositeDisposable? _compositeDisposable;
 
         /// <inheritdoc/>
         public event EventHandler<ControlledApplicationLifetimeStartupEventArgs>? Startup;
@@ -33,12 +33,15 @@ namespace Avalonia.Controls.ApplicationLifetimes
         /// Gets the arguments passed to the AppBuilder Start method.
         /// </summary>
         public string[]? Args { get; set; }
-        
+
         /// <inheritdoc/>
         public ShutdownMode ShutdownMode { get; set; }
-        
+
         /// <inheritdoc/>
         public Window? MainWindow { get; set; }
+
+        /// <inheritdoc/>
+        public bool ShowMainWindowAtStartup { get; set; } = true;
 
         /// <inheritdoc />
         public IReadOnlyList<Window> Windows => _windows;
@@ -47,7 +50,7 @@ namespace Avalonia.Controls.ApplicationLifetimes
         {
             if (window == null)
                 return;
-            
+
             if (_isShuttingDown)
                 return;
 
@@ -90,7 +93,7 @@ namespace Avalonia.Controls.ApplicationLifetimes
                     var window = (Window)sender!;
                     _windows.Remove(window);
                     HandleWindowClosed(window);
-                }));            
+                }));
         }
 
         internal void SetupCore(string[] args)
@@ -100,7 +103,7 @@ namespace Avalonia.Controls.ApplicationLifetimes
             Startup?.Invoke(this, new ControlledApplicationLifetimeStartupEventArgs(args));
 
             var options = AvaloniaLocator.Current.GetService<ClassicDesktopStyleApplicationLifetimeOptions>();
-            
+
             if(options != null && options.ProcessUrlActivationCommandLine && args.Length > 0)
             {
                 if (Application.Current is IApplicationPlatformEvents events)
@@ -109,7 +112,7 @@ namespace Avalonia.Controls.ApplicationLifetimes
                 }
             }
 
-            var lifetimeEvents = AvaloniaLocator.Current.GetService<IPlatformLifetimeEventsImpl>(); 
+            var lifetimeEvents = AvaloniaLocator.Current.GetService<IPlatformLifetimeEventsImpl>();
 
             if (lifetimeEvents != null)
                 lifetimeEvents.ShutdownRequested += OnShutdownRequested;
@@ -148,7 +151,10 @@ namespace Avalonia.Controls.ApplicationLifetimes
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void ShowMainWindow()
         {
-            MainWindow?.Show();
+            if (ShowMainWindowAtStartup)
+            {
+                MainWindow?.Show();
+            }
         }
 
         public void Dispose()
@@ -201,7 +207,7 @@ namespace Avalonia.Controls.ApplicationLifetimes
 
                 var args = new ControlledApplicationLifetimeExitEventArgs(exitCode);
                 Exit?.Invoke(this, args);
-                _exitCode = args.ApplicationExitCode;                
+                _exitCode = args.ApplicationExitCode;
             }
             finally
             {
@@ -217,10 +223,10 @@ namespace Avalonia.Controls.ApplicationLifetimes
 
             return true;
         }
-        
+
         private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e) => DoShutdown(e, false);
     }
-    
+
     public class ClassicDesktopStyleApplicationLifetimeOptions
     {
         public bool ProcessUrlActivationCommandLine { get; set; }
