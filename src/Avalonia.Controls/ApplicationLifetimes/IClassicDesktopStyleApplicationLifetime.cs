@@ -22,9 +22,9 @@ namespace Avalonia.Controls.ApplicationLifetimes
         /// method.
         /// </summary>
         string[]? Args { get; }
-        
+
         /// <summary>
-        /// Gets or sets the <see cref="ShutdownMode"/>. This property indicates whether the application is shutdown explicitly or implicitly. 
+        /// Gets or sets the <see cref="ShutdownMode"/>. This property indicates whether the application is shutdown explicitly or implicitly.
         /// If <see cref="ShutdownMode"/> is set to OnExplicitShutdown the application is only closes if Shutdown is called.
         /// The default is OnLastWindowClose
         /// </summary>
@@ -42,6 +42,11 @@ namespace Avalonia.Controls.ApplicationLifetimes
         Window? MainWindow { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the main window should be shown at startup.
+        /// </summary>
+        bool ShowMainWindowAtStartup { get; set; }
+
+        /// <summary>
         /// Gets the list of all open windows in the application.
         /// </summary>
         IReadOnlyList<Window> Windows { get; }
@@ -51,13 +56,13 @@ namespace Avalonia.Controls.ApplicationLifetimes
         /// </summary>
         /// <remarks>
         /// Application Shutdown can be requested for various reasons like OS shutdown.
-        /// 
-        /// On Windows this will be called when an OS Session (logout or shutdown) terminates. Cancelling the eventargs will 
+        ///
+        /// On Windows this will be called when an OS Session (logout or shutdown) terminates. Cancelling the eventargs will
         /// block OS shutdown.
-        /// 
+        ///
         /// On OSX this has the same behavior as on Windows and in addition:
-        /// This event is raised via the Quit menu or right-clicking on the application icon and selecting Quit. 
-        /// 
+        /// This event is raised via the Quit menu or right-clicking on the application icon and selecting Quit.
+        ///
         /// This event provides a first-chance to cancel application shutdown; if shutdown is not canceled at this point the application
         /// will try to close each non-owned open window, invoking the <see cref="Window.Closing"/> event on each and allowing
         /// each window to cancel the shutdown of the application. Windows cannot however prevent OS shutdown.
