@@ -58,7 +58,7 @@ namespace Avalonia.X11
             DeferredDisplay = XOpenDisplay(IntPtr.Zero);
             if (DeferredDisplay == IntPtr.Zero)
                 throw new Exception("XOpenDisplay failed");
-                
+
             OrphanedWindow = XCreateSimpleWindow(Display, XDefaultRootWindow(Display), 0, 0, 1, 1, 0, IntPtr.Zero,
                 IntPtr.Zero);
             XError.Init();
@@ -86,7 +86,7 @@ namespace Avalonia.X11
                 .Bind<IPlatformIconLoader>().ToConstant(new X11IconLoader())
                 .Bind<IMountedVolumeInfoProvider>().ToConstant(new LinuxMountedVolumeInfoProvider())
                 .Bind<IPlatformLifetimeEventsImpl>().ToConstant(new X11PlatformLifetimeEvents(this));
-            
+
             Screens = X11Screens = new X11Screens(this);
             if (Info.XInputVersion != null)
             {
@@ -126,7 +126,7 @@ namespace Avalonia.X11
 
             return dbusTrayIcon;
         }
-        
+
         public IWindowImpl CreateWindow()
         {
             return new X11Window(this, null);
@@ -145,11 +145,11 @@ namespace Avalonia.X11
             var avaloniaImModule = Environment.GetEnvironmentVariable("AVALONIA_IM_MODULE");
             if (avaloniaImModule == "none")
                 return false;
-            
+
             // Use value from options when specified
             if (options.EnableIme.HasValue)
                 return options.EnableIme.Value;
-            
+
             // Automatically enable for CJK locales
             var lang = Environment.GetEnvironmentVariable("LANG");
             var isCjkLocale = lang != null &&
@@ -168,7 +168,7 @@ namespace Avalonia.X11
                 || Environment.GetEnvironmentVariable("GTK_IM_MODULE") == "none"
                 || Environment.GetEnvironmentVariable("QT_IM_MODULE") == "none")
                 return true;
-            
+
             // Check if XIM is configured
             var modifiers = Environment.GetEnvironmentVariable("XMODIFIERS");
             if (modifiers == null)
@@ -177,16 +177,16 @@ namespace Avalonia.X11
                 return false;
             if (!modifiers.Contains("@im="))
                 return false;
-            
+
             // Check if we are configured to use it
             if (Environment.GetEnvironmentVariable("GTK_IM_MODULE") == "xim"
                 || Environment.GetEnvironmentVariable("QT_IM_MODULE") == "xim"
                 || Environment.GetEnvironmentVariable("AVALONIA_IM_MODULE") == "xim")
                 return true;
-            
+
             return false;
         }
-        
+
         private static IPlatformGraphics InitializeGraphics(X11PlatformOptions opts, X11Info info)
         {
             if (opts.RenderingMode is null || !opts.RenderingMode.Any())
@@ -200,7 +200,7 @@ namespace Avalonia.X11
                 {
                     return null;
                 }
-                
+
                 if (renderingMode == X11RenderingMode.Glx)
                 {
                     if (GlxPlatformGraphics.TryCreate(info, opts.GlProfiles) is { } glx)
@@ -252,13 +252,13 @@ namespace Avalonia
         /// Enables native Linux EGL rendering.
         /// </summary>
         Egl = 3,
-        
+
         /// <summary>
         /// Enables Vulkan rendering
         /// </summary>
         Vulkan = 4
     }
-    
+
     /// <summary>
     /// Platform-specific options which apply to Linux.
     /// </summary>
@@ -294,13 +294,13 @@ namespace Avalonia
         /// The default value is true.
         /// </summary>
         public bool UseDBusFilePicker { get; set; } = true;
-        
+
         /// <summary>
         /// Determines whether to use IME.
         /// IME would be enabled by default if the current user input language is one of the following: Mandarin, Japanese, Vietnamese or Korean.
         /// </summary>
         /// <remarks>
-        /// Input method editor is a component that enables users to generate characters not natively available 
+        /// Input method editor is a component that enables users to generate characters not natively available
         /// on their input devices by using sequences of characters or mouse operations that are natively available on their input devices.
         /// </remarks>
         public bool? EnableIme { get; set; } = true;
@@ -308,9 +308,9 @@ namespace Avalonia
         /// <summary>
         /// Determines whether to use Input Focus Proxy.
         /// The default value is false.
-        /// </summary> 
+        /// </summary>
         public bool EnableInputFocusProxy { get; set; }
-        
+
         /// <summary>
         /// Determines whether to enable support for the
         /// X Session Management Protocol.
@@ -320,7 +320,7 @@ namespace Avalonia
         /// Linux systems that uses Xorg. This enables apps to control how they
         /// can control and/or cancel the pending shutdown requested by the user.
         /// </remarks>
-        public bool EnableSessionManagement { get; set; } = 
+        public bool EnableSessionManagement { get; set; } =
             Environment.GetEnvironmentVariable("AVALONIA_X11_USE_SESSION_MANAGEMENT") != "0";
 
         /// <summary>
@@ -353,7 +353,7 @@ namespace Avalonia
             "SVGA3D"
         };
 
-        
+
         public string WmClass { get; set; }
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace Avalonia
         /// Retain window framebuffer contents if using CPU rendering mode.
         /// This will keep an offscreen bitmap for each window with contents of the previous frame
         /// While improving performance by saving a blit, it will increase memory consumption
-        /// if you have many windows 
+        /// if you have many windows
         /// </summary>
         public bool? UseRetainedFramebuffer { get; set; }
 
@@ -378,7 +378,7 @@ namespace Avalonia
         /// Use this if you need to use GLib-based libraries on the main thread
         /// </summary>
         public bool UseGLibMainLoop { get; set; }
-        
+
         /// <summary>
         /// If Avalonia is in control of a run loop, we propagate exceptions by stopping the run loop frame
         /// and rethrowing an exception. However, if there is no Avalonia-controlled run loop frame,
@@ -387,7 +387,7 @@ namespace Avalonia
         /// This property allows to inspect such exceptions before they will be ignored
         /// </summary>
         public Action<Exception>? ExterinalGLibMainLoopExceptionLogger { get; set; }
-        
+
         public X11PlatformOptions()
         {
             try
