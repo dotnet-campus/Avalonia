@@ -13,6 +13,8 @@ namespace Avalonia.Rendering.Composition
     {
         private IBrush? _opacityMask;
 
+        private IEffect? _effectField;
+
         private protected virtual void OnRootChangedCore()
         {
         }
@@ -45,6 +47,32 @@ namespace Avalonia.Rendering.Composition
                 }
                 else
                     OpacityMaskBrushTransportField = (_opacityMask = value)?.ToImmutable();
+            }
+        }
+
+        public IEffect? Effect
+        {
+            get => _effectField;
+            set
+            {
+                if (ReferenceEquals(_effectField, value))
+                    return;
+
+                if (_effectField is ICompositionRenderResource<IImmutableEffect> oldCompositorEffect)
+                {
+                    oldCompositorEffect.ReleaseOnCompositor(Compositor);
+                    _effectField = null;
+                    EffectTransportField = null;
+                }
+
+                if (value is ICompositionRenderResource<IImmutableEffect> newCompositorEffect)
+                {
+                    newCompositorEffect.AddRefOnCompositor(Compositor);
+                    EffectTransportField = newCompositorEffect.GetForCompositor(Compositor);
+                    _effectField = value;
+                }
+                else
+                    EffectTransportField = value?.ToImmutable();
             }
         }
 
