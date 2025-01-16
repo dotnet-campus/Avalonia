@@ -2,6 +2,7 @@ using Avalonia.Collections;
 using Avalonia.Collections.Pooled;
 using Avalonia.Media;
 using Avalonia.Rendering.Composition;
+using Avalonia.Rendering.Composition.Drawing;
 using Avalonia.Rendering.Composition.Server;
 using Avalonia.VisualTree;
 
@@ -36,6 +37,7 @@ public partial class Visual
                 
             CompositionVisual.DrawList = null;
             CompositionVisual.OpacityMask = null;
+            CompositionVisual.Effect = null;
             CompositionVisual = null;
         }
     }
@@ -145,7 +147,9 @@ public partial class Visual
             comp.OpacityMask = OpacityMask;
 
         if (!comp.Effect.EffectEquals(Effect))
-            comp.Effect = Effect?.ToImmutable();
+        {
+            comp.Effect = Effect;
+        }
 
         comp.RenderOptions = RenderOptions;
 
