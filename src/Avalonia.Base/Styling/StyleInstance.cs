@@ -24,6 +24,7 @@ namespace Avalonia.Styling
         private bool _isActive;
         private List<ISetterInstance>? _setters;
         private List<IAnimation>? _animations;
+        private List<IDisposable>? _animationApplyDisposables;
         private LightweightSubject<bool>? _animationTrigger;
 
         public StyleInstance(
@@ -68,8 +69,9 @@ namespace Avalonia.Styling
             if (_animations is not null && control is Animatable animatable)
             {
                 _animationTrigger ??= new LightweightSubject<bool>();
+                _animationApplyDisposables ??= new List<IDisposable>();
                 foreach (var animation in _animations)
-                    animation.Apply(animatable, null, _animationTrigger);
+                    _animationApplyDisposables.Add(animation.Apply(animatable, null, _animationTrigger));
 
                 if (_activator is null)
                     _animationTrigger.OnNext(true);
@@ -80,6 +82,13 @@ namespace Avalonia.Styling
         {
             base.Dispose();
             _activator?.Dispose();
+            if (_animationApplyDisposables != null)
+            {
+                foreach (var item in _animationApplyDisposables)
+                {
+                    item.Dispose();
+                }
+            }
         }
 
         public new void MakeShared() => base.MakeShared();
