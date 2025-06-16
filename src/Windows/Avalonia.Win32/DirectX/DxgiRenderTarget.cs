@@ -136,7 +136,10 @@ namespace Avalonia.Win32.DirectX
                 );
             }
 
-            _size = size;
+            _dxgiFactory.MakeWindowAssociation(window.Handle, (uint)(DXGI_MWA.DXGI_MWA_NO_ALT_ENTER | DXGI_MWA.DXGI_MWA_NO_PRINT_SCREEN));
+
+            GetClientRect(_window.Handle, out var pClientRect);
+            _clientRect = pClientRect;
         }
 
         /// <inheritdoc />
