@@ -130,8 +130,10 @@ namespace Avalonia.X11
                 // the target sufrace currently is
                 _useCompositorDrivenRenderWindowResize = true;
             }
-            else if (glfeature == null)
+            else
+            {
                 visualInfo = _x11.TransparentVisualInfo;
+            }
 
             var egl = glfeature as EglPlatformGraphics;
             
