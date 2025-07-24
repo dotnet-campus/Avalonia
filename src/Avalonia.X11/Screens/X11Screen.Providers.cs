@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Avalonia.Platform;
 using static Avalonia.X11.XLib;
 
@@ -23,29 +24,50 @@ internal partial class X11Screens
             var namePtr = XGetAtomName(x11.Display, newInfo.Name);
             var name = Marshal.PtrToStringAnsi(namePtr);
             XFree(namePtr);
-            DisplayName = name;
             IsPrimary = newInfo.IsPrimary;
             Bounds = new PixelRect(newInfo.X, newInfo.Y, newInfo.Width, newInfo.Height);
             Size? pSize = null;
-            for (int o = 0; o < newInfo.Outputs.Length; o++)
+            string? displayProductName = null;
+            for (var o = 0; o < newInfo.Outputs.Length; o++)
             {
-                var outputSize = GetPhysicalMonitorSizeFromEDID(newInfo.Outputs[o]);
-                if (outputSize != null)
+                if (TryGetEdidInfo(newInfo.Outputs[o], out var edid))
                 {
-                    pSize = outputSize;
-                    break;
+                    if (pSize == null)
+                    {
+                        var outputSize = GetPhysicalMonitorSizeFromEDID(edid);
+                        if (outputSize != null)
+                        {
+                            pSize = outputSize;
+                        }
+                    }
+                    if (displayProductName == null)
+                    {
+                        var nameFromEdid = GetDisplayProductNameFromEDID(edid);
+                        if (nameFromEdid != null)
+                        {
+                            displayProductName = nameFromEdid;
+                        }
+                    }
+                    if (pSize != null && displayProductName != null)
+                    {
+                        break;
+                    }
                 }
             }
+            DisplayName = displayProductName ?? name;
             PhysicalSize = pSize;
             UpdateWorkArea();
             Scaling = scalingProvider.GetScaling(this, id);
         }
 
-        private unsafe Size? GetPhysicalMonitorSizeFromEDID(IntPtr rrOutput)
+        private bool TryGetEdidInfo(IntPtr rrOutput, out byte[] edid)
         {
+            edid = [];
             if (rrOutput == IntPtr.Zero)
-                return null;
-            var properties = XRRListOutputProperties(x11.Display, rrOutput, out int propertyCount);
+            {
+                return false;
+            }
+            var properties = XRRListOutputProperties(x11.Display, rrOutput, out var propertyCount);
             var hasEDID = false;
             for (var pc = 0; pc < propertyCount; pc++)
             {
@@ -54,19 +76,30 @@ internal partial class X11Screens
             }
 
             if (!hasEDID)
-                return null;
+            {
+                return false;
+            }
             XRRGetOutputProperty(x11.Display, rrOutput, x11.Atoms.EDID, 0, EDIDStructureLength, false, false,
                 x11.Atoms.AnyPropertyType, out IntPtr actualType, out int actualFormat, out int bytesAfter, out _,
                 out IntPtr prop);
             if (actualType != x11.Atoms.XA_INTEGER)
-                return null;
+            {
+                return false;
+            }
             if (actualFormat != 8) // Expecting an byte array
-                return null;
+            {
+                return false;
+            }
 
-            var edid = new byte[bytesAfter];
+            edid = new byte[bytesAfter];
             Marshal.Copy(prop, edid, 0, bytesAfter);
             XFree(prop);
             XFree(new IntPtr(properties));
+            return true;
+        }
+
+        private unsafe Size? GetPhysicalMonitorSizeFromEDID(byte[] edid)
+        {
             if (edid.Length < 22)
                 return null;
             var width = edid[21]; // 0x15 1 Max. Horizontal Image Size cm. 
@@ -74,6 +107,27 @@ internal partial class X11Screens
             if (width == 0 && height == 0)
                 return null;
             return new Size(width * 10, height * 10);
+        }
+
+        private string? GetDisplayProductNameFromEDID(byte[] edid)
+        {
+            if (edid == null || edid.Length < 128)
+                throw new ArgumentException("Invalid EDID data.");
+
+            // EDID 的 Descriptor Blocks 从第 54 字节开始，每个块 18 字节
+            for (int i = 54; i <= 108; i += 18)
+            {
+                // 检查 Descriptor Block 的类型是否为 0xFC (Display Product Name)
+                if (edid[i] == 0x00 && edid[i + 1] == 0x00 && edid[i + 2] == 0x00 && edid[i + 3] == 0xFC)
+                {
+                    // 提取名称字符串（最多 13 字节，可能以 0x0A 结尾）
+                    var nameBytes = new byte[13];
+                    Array.Copy(edid, i + 5, nameBytes, 0, 13);
+                    var name = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0', '\n', '\r');
+                    return name;
+                }
+            }
+            return null; // 未找到 Display Product Name
         }
 
         protected unsafe void UpdateWorkArea()
