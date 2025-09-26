@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Avalonia.Metadata;
+using System.Threading;
 using Avalonia.Platform;
 using Avalonia.Reactive;
 
@@ -23,12 +23,12 @@ internal class PlatformRenderInterfaceContextManager
     }
 
     public bool IsReady => _readyStateFeature?.IsReady ?? true;
-    
+
     public void EnsureValidBackendContext()
     {
         if (!IsReady)
             throw new InvalidOperationException("Platform graphics isn't ready yet");
-        
+
         if (_backend == null || _gpuContext?.Value.IsLost == true)
         {
             _backend?.Dispose();
@@ -76,10 +76,29 @@ internal class PlatformRenderInterfaceContextManager
             return _gpuContext.Value.Value.EnsureCurrent();
         return Disposable.Empty;
     }
-    
+
     public IRenderTarget CreateRenderTarget(IEnumerable<object> surfaces)
     {
         EnsureValidBackendContext();
         return _backend!.CreateRenderTarget(surfaces);
+    }
+
+    public void Release()
+    {
+        if (_backend != null || _gpuContext != null)
+        {
+            if (_backend != null)
+            {
+                _backend.Dispose();
+                _backend = null;
+            }
+
+            if (_gpuContext != null)
+            {
+                _gpuContext?.Dispose();
+                _gpuContext = null;
+            }
+            ContextDisposed?.Invoke();
+        }
     }
 }

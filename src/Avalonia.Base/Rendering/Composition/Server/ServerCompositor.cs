@@ -228,11 +228,19 @@ namespace Avalonia.Rendering.Composition.Server
             {
                 if(!RenderInterface.IsReady)
                     return;
-                RenderInterface.EnsureValidBackendContext();
-                ExecuteServerJobs(_receivedJobQueue);
-                foreach (var t in _activeTargets)
-                    t.Render();
-                ExecuteServerJobs(_receivedPostTargetJobQueue);
+
+                if (_activeTargets.Count == 0)
+                {
+                    RenderInterface.Release();
+                }
+                else
+                {
+                    RenderInterface.EnsureValidBackendContext();
+                    ExecuteServerJobs(_receivedJobQueue);
+                    foreach (var t in _activeTargets)
+                        t.Render();
+                    ExecuteServerJobs(_receivedPostTargetJobQueue);
+                }
             }
             catch (Exception e) when(RT_OnContextLostExceptionFilterObserver(e) && catchExceptions)
             {
