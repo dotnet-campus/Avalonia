@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Avalonia.Logging;
 using Avalonia.Threading;
@@ -92,6 +93,8 @@ namespace Avalonia.Rendering
         /// <inheritdoc />
         public bool RunsInBackground => Timer.RunsInBackground;
 
+        //private Stopwatch _stopwatch = Stopwatch.StartNew();
+
         private void TimerTick(TimeSpan time)
         {
             if (Interlocked.CompareExchange(ref _inTick, 1, 0) == 0)
@@ -104,8 +107,8 @@ namespace Avalonia.Rendering
                         _itemsCopy.Clear();
                         _itemsCopy.AddRange(_items);
                     }
-                    
 
+                    Console.WriteLine($"_itemsCopy.Count={_itemsCopy.Count}");
                     for (int i = 0; i < _itemsCopy.Count; i++)
                     {
                         _itemsCopy[i].Render();

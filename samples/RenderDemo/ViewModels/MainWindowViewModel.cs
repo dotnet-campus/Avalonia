@@ -59,14 +59,16 @@ namespace RenderDemo.ViewModels
 
         public string WindowSizeText
         {
-            get;
+            get => _WindowSizeText;
             set
             {
                 if (value == field) return;
-                field = value;
+                _WindowSizeText = value;
                 RaisePropertyChanged();
             }
-        } = "";
+        }
+
+        private string _WindowSizeText = "";
 
         public MiniCommand ToggleDrawDirtyRects { get; }
         public MiniCommand ToggleDrawFps { get; }
