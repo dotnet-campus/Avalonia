@@ -29,7 +29,7 @@ namespace RenderDemo
                .With(new Win32PlatformOptions
                {
                    OverlayPopups = true,
-                   CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
+                   //CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
                })
                 .UsePlatformDetect()
                 .WithDeveloperTools()
