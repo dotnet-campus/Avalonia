@@ -1,4 +1,4 @@
-<Window x:Class="RenderDemo.MainWindow"
+﻿<Window x:Class="RenderDemo.MainWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:ControlSamples"
@@ -8,7 +8,8 @@
         x:DataType="viewModels:MainWindowViewModel"
         Width="{Binding Width, Mode=TwoWay}"
         Height="{Binding Height, Mode=TwoWay}">
-  <controls:HamburgerMenu ExpandedModeThresholdWidth="760">
+  <Grid>
+  <controls:HamburgerMenu ExpandedModeThresholdWidth="760" IsVisible="False">
     <FlyoutBase.AttachedFlyout>
       <MenuFlyout>
         <MenuItem Header="Rendering">
@@ -95,4 +96,65 @@
       <pages:Transform3DPage />
     </TabItem>
   </controls:HamburgerMenu>
+    <Grid x:Name="AnimationGrid">
+      <Path Fill="Red" Stretch="Uniform"
+            Data="F1 M 16.6309,18.6563C 17.1309,
+                8.15625 29.8809,14.1563 29.8809,
+                14.1563C 30.8809,11.1563 34.1308,
+                11.4063 34.1308,11.4063C 33.5,12 
+                34.6309,13.1563 34.6309,13.1563C 
+                32.1309,13.1562 31.1309,14.9062 
+                31.1309,14.9062C 41.1309,23.9062
+                32.6309,27.9063 32.6309,27.9062C 
+                24.6309,24.9063 21.1309,22.1562 
+                16.6309,18.6563 Z M 16.6309,19.9063C
+                21.6309,24.1563 25.1309,26.1562 
+                31.6309,28.6562C 31.6309,28.6562
+                26.3809,39.1562 18.3809,36.1563C
+                18.3809,36.1563 18,38 16.3809,36.9063C 
+                15,36 16.3809,34.9063 16.3809,34.9063C
+                16.3809,34.9063 10.1309,30.9062 16.6309,19.9063 Z">
+        <Path.Styles>
+          <Style>
+            <Style.Animations>
+              <Animation Duration="0:0:0.5"
+                         Easing="QuadraticEaseInOut"
+                         IterationCount="Infinite">
+                <KeyFrame Cue="50%">
+                  <Setter Property="ScaleTransform.ScaleX" Value="0.8"/>
+                  <Setter Property="ScaleTransform.ScaleY" Value="0.8"/>
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
+        </Path.Styles>
+      </Path>
+
+      <Border VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="50" Background="Red">
+        <Border.RenderTransform>
+          <RotateTransform Angle="0"></RotateTransform>
+        </Border.RenderTransform>
+        <Border.Styles>
+          <Style Selector="Border">
+          <Style.Animations>
+            <Animation Duration="0:0:0.5"
+                       Easing="QuadraticEaseInOut"
+                       IterationCount="Infinite">
+              <KeyFrame Cue="50%">
+                <Setter Property="RotateTransform.Angle" Value="180"/>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+          </Style>
+        </Border.Styles>
+      </Border>
+
+      <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,50,10,10"
+                  Orientation="Horizontal">
+        <Button x:Name="AddWindowSizeButton" Content="加窗口100宽度高度" Click="AddWindowSizeButton_OnClick" />
+        <TextBlock x:Name="WindowSizeTextBlock" Margin="10,10,10,10" Text="{Binding WindowSizeText}"></TextBlock>
+      </StackPanel>
+     
+    </Grid>
+  </Grid>
 </Window>

@@ -5,12 +5,12 @@ namespace RenderDemo.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private bool _drawDirtyRects;
+        private bool _drawDirtyRects = true;
         private bool _drawFps = true;
         private bool _drawLayoutTimeGraph;
         private bool _drawRenderTimeGraph;
-        private double _width = 800;
-        private double _height = 600;
+        private double _width = 1000;
+        private double _height = 1000;
 
         public MainWindowViewModel()
         {
@@ -56,6 +56,17 @@ namespace RenderDemo.ViewModels
             get => _height;
             set => RaiseAndSetIfChanged(ref _height, value);
         }
+
+        public string WindowSizeText
+        {
+            get;
+            set
+            {
+                if (value == field) return;
+                field = value;
+                RaisePropertyChanged();
+            }
+        } = "";
 
         public MiniCommand ToggleDrawDirtyRects { get; }
         public MiniCommand ToggleDrawFps { get; }
