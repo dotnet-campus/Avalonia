@@ -95,9 +95,7 @@ namespace Avalonia.Rendering
         /// <inheritdoc />
         public bool RunsInBackground => Timer.RunsInBackground;
 
-        private Stopwatch _stopwatch = Stopwatch.StartNew();
-        private double _total;
-        private int _count;
+        private PerformanceCounter PerformanceCounter { get; } = new PerformanceCounter(nameof(RenderLoop));
 
         private void TimerTick(TimeSpan time)
         {
@@ -115,19 +113,9 @@ namespace Avalonia.Rendering
                     //Console.WriteLine($"_itemsCopy.Count={_itemsCopy.Count}");
                     for (int i = 0; i < _itemsCopy.Count; i++)
                     {
-                        _stopwatch.Restart();
+                        PerformanceCounter.StepStart();
                         _itemsCopy[i].Render();
-                        _stopwatch.Stop();
-                        _total += _stopwatch.Elapsed.TotalMilliseconds;
-                    }
-
-                    _count++;
-                    if (_count > 100)
-                    {
-                        var ave = _total / _count;
-                        Console.WriteLine($"平均毫秒： {ave}");
-                        _count = 0;
-                        _total = 0;
+                        PerformanceCounter.StepStop();
                     }
 
                     _itemsCopy.Clear();
@@ -156,6 +144,7 @@ namespace Avalonia.Rendering
         public void StepStop()
         {
             _stopwatch.Stop();
+            _total += _stopwatch.Elapsed.TotalMilliseconds;
 
             if (_count > 100 && _total > 1000)
             {
