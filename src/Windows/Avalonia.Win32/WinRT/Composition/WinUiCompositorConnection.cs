@@ -131,7 +131,7 @@ internal class WinUiCompositorConnection : IRenderTimer, Win32.IWindowsSurfaceFa
         {
             _currentCommit?.Dispose();
             _currentCommit = null;
-            //_parent.Tick?.Invoke(_st.Elapsed);
+            _parent.Tick?.Invoke(_st.Elapsed);
             ScheduleNextCommit();
         }
 
