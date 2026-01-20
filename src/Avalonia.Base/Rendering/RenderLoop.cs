@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.X86;
 using System.Threading;
+
 using Avalonia.Logging;
 using Avalonia.Threading;
 
@@ -93,7 +95,9 @@ namespace Avalonia.Rendering
         /// <inheritdoc />
         public bool RunsInBackground => Timer.RunsInBackground;
 
-        //private Stopwatch _stopwatch = Stopwatch.StartNew();
+        private Stopwatch _stopwatch = Stopwatch.StartNew();
+        private double _total;
+        private int _count;
 
         private void TimerTick(TimeSpan time)
         {
@@ -101,19 +105,31 @@ namespace Avalonia.Rendering
             {
                 try
                 {
-                    
                     lock (_items)
                     {
                         _itemsCopy.Clear();
                         _itemsCopy.AddRange(_items);
                     }
 
-                    Console.WriteLine($"_itemsCopy.Count={_itemsCopy.Count}");
+
+                    //Console.WriteLine($"_itemsCopy.Count={_itemsCopy.Count}");
                     for (int i = 0; i < _itemsCopy.Count; i++)
                     {
+                        _stopwatch.Restart();
                         _itemsCopy[i].Render();
+                        _stopwatch.Stop();
+                        _total += _stopwatch.Elapsed.TotalMilliseconds;
                     }
-                    
+
+                    _count++;
+                    if (_count > 100)
+                    {
+                        var ave = _total / _count;
+                        Console.WriteLine($"平均毫秒： {ave}");
+                        _count = 0;
+                        _total = 0;
+                    }
+
                     _itemsCopy.Clear();
 
                 }
@@ -127,5 +143,34 @@ namespace Avalonia.Rendering
                 }
             }
         }
+    }
+
+    public class PerformanceCounter(string name)
+    {
+        public void StepStart()
+        {
+            _stopwatch.Restart();
+            _count++;
+        }
+
+        public void StepStop()
+        {
+            _stopwatch.Stop();
+
+            if (_count > 100 && _total > 1000)
+            {
+                var ave = _total / _count;
+
+                Console.WriteLine($"[{name}] 平均毫秒： {ave}");
+
+                _count = 0;
+                _total = 0;
+            }
+        }
+
+
+        private Stopwatch _stopwatch = Stopwatch.StartNew();
+        private double _total;
+        private int _count;
     }
 }
