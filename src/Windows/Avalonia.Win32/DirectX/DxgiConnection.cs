@@ -32,7 +32,7 @@ namespace Avalonia.Win32.DirectX
         {
             _syncLock = syncLock;
         }
-        
+
         public static bool TryCreateAndRegister()
         {
             try
@@ -74,6 +74,11 @@ namespace Avalonia.Win32.DirectX
                     if (timeTillNextTick.TotalMilliseconds > 1)
                     {
                         Thread.Sleep(timeTillNextTick);
+                    }
+                    else
+                    {
+                        //// 渲染超过时间
+                        //Console.WriteLine($"渲染超过时间");
                     }
 
                     lastTick = now = _stopwatch.Elapsed;
