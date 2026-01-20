@@ -29,6 +29,7 @@ namespace RenderDemo
                .With(new Win32PlatformOptions
                {
                    OverlayPopups = true,
+                   RenderingMode = [Win32RenderingMode.AngleEgl],
                    CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
                })
                 .UsePlatformDetect()

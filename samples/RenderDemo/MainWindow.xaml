@@ -97,7 +97,7 @@
     </TabItem>
   </controls:HamburgerMenu>
     <Grid x:Name="AnimationGrid">
-      <Path Fill="Red" Stretch="Uniform"
+      <Path Fill="#F3F3F3" Stretch="Uniform"
             Data="F1 M 16.6309,18.6563C 17.1309,
                 8.15625 29.8809,14.1563 29.8809,
                 14.1563C 30.8809,11.1563 34.1308,
@@ -130,7 +130,7 @@
         </Path.Styles>
       </Path>
 
-      <Border VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="50" Background="Red">
+      <Border VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="50" Background="#F1F1F1">
         <Border.RenderTransform>
           <RotateTransform Angle="0"></RotateTransform>
         </Border.RenderTransform>

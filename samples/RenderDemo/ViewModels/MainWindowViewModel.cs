@@ -5,7 +5,7 @@ namespace RenderDemo.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private bool _drawDirtyRects = true;
+        private bool _drawDirtyRects;
         private bool _drawFps = true;
         private bool _drawLayoutTimeGraph;
         private bool _drawRenderTimeGraph;
