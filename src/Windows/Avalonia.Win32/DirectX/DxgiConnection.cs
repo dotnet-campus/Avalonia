@@ -74,43 +74,10 @@ namespace Avalonia.Win32.DirectX
                     if (timeTillNextTick.TotalMilliseconds > 1)
                     {
                         Thread.Sleep(timeTillNextTick);
-                        lastTick = now = _stopwatch.Elapsed;
-                        Tick?.Invoke(now);
-                        continue;
-                    }
-                    else if (timeTillNextTick.TotalMilliseconds < 0)
-                    {
-                        lastTick = now = _stopwatch.Elapsed;
-                        Tick?.Invoke(now);
-                        continue;
                     }
 
-                    lock (_syncLock)
-                    {
-                        if (_output is not null)
-                        {
-                            try
-                            {
-                                _output.WaitForVBlank();
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.TryGet(LogEventLevel.Error, LogArea)
-                                    ?.Log(this, $"Failed to wait for vblank, Exception: {ex.Message}, HRESULT = {ex.HResult}");
-                                _output.Dispose();
-                                _output = null;
-                                GetBestOutputToVWaitOn();
-                            }
-                        }
-                        else
-                        {
-                            // well since that obviously didn't work, then let's use the lowest-common-denominator instead 
-                            // for reference, this has never happened on my machine,
-                            // but theoretically someone could have a weirder setup out there 
-                            DwmFlush();
-                        }
-                        Tick?.Invoke(_stopwatch.Elapsed);
-                    }
+                    lastTick = now = _stopwatch.Elapsed;
+                    Tick?.Invoke(now);
                 }
                 catch (Exception ex)
                 {
