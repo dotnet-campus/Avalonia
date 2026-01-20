@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Logging;
 using Avalonia.OpenGL.Egl;
@@ -170,6 +171,9 @@ namespace Avalonia.Win32.DirectX
             thread.SetApartmentState(System.Threading.ApartmentState.STA);
             thread.Name = "DxgiRenderTimerLoop";
             thread.Start();
+
+            thread.Priority = ThreadPriority.Highest;
+
             // block until 
             return tcs.Task.Result;
         }
