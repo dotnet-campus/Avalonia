@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using Avalonia.OpenGL;
@@ -91,14 +91,12 @@ static class Win32GlManager
             }
 
             if (compositionMode == Win32CompositionMode.WinUIComposition
-                && WinUiCompositorConnection.IsSupported()
                 && WinUiCompositorConnection.TryCreateAndRegister())
             {
                 return;
             }
 
             if (compositionMode == Win32CompositionMode.DirectComposition
-                && DirectCompositionConnection.IsSupported()
                 && DirectCompositionConnection.TryCreateAndRegister())
             {
                 return;
