@@ -67,8 +67,7 @@ namespace Avalonia.Win32.DirectX
                         {
                             try
                             {
-                                //_output.WaitForVBlank();
-                                DwmFlush();
+                                _output.WaitForVBlank();
                             }
                             catch (Exception ex)
                             {
