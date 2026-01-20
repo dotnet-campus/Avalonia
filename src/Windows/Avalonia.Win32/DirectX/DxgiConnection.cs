@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
-
 using Avalonia.Logging;
 using Avalonia.OpenGL.Egl;
 using Avalonia.Rendering;
-
-using MicroCom.Runtime;
-
-using static Avalonia.Win32.DirectX.DirectXUnmanagedMethods;
 using static Avalonia.Win32.Interop.UnmanagedMethods;
+using static Avalonia.Win32.DirectX.DirectXUnmanagedMethods;
+using MicroCom.Runtime;
 
 namespace Avalonia.Win32.DirectX
 {
@@ -61,30 +57,10 @@ namespace Avalonia.Win32.DirectX
                                     ?.Log(this, $"Failed to wait for vblank, Exception: {ex.Message}, HRESULT = {ex.HResult}");
             }
 
-            var lastTick = _stopwatch.Elapsed;
-            var fps = 100;
-            var _timeBetweenTicks = TimeSpan.FromSeconds(1d / fps);
-
             while (true)
             {
                 try
                 {
-                    var now = _stopwatch.Elapsed;
-                    var timeTillNextTick = lastTick + _timeBetweenTicks - now;
-                    if (timeTillNextTick.TotalMilliseconds > 1)
-                    {
-                        Thread.Sleep(timeTillNextTick);
-                        lastTick = now = _stopwatch.Elapsed;
-                        Tick?.Invoke(now);
-                        continue;
-                    }
-                    else if (timeTillNextTick.TotalMilliseconds < 0)
-                    {
-                        lastTick = now = _stopwatch.Elapsed;
-                        Tick?.Invoke(now);
-                        continue;
-                    }
-
                     lock (_syncLock)
                     {
                         if (_output is not null)
