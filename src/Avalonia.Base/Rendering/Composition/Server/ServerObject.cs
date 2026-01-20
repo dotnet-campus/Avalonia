@@ -99,6 +99,11 @@ namespace Avalonia.Rendering.Composition.Server
         protected void SetAnimatedValue<T>(CompositionProperty prop, ref T field,
             TimeSpan committedAt, IAnimationInstance animation) where T : struct
         {
+            if (ShouldEnterDebugMode())
+            {
+
+            }
+
             if (IsActive && _animations.TryGetValue(prop, out var oldAnimation))
                 oldAnimation.Deactivate();
             _animations[prop] = animation;
@@ -112,6 +117,11 @@ namespace Avalonia.Rendering.Composition.Server
 
         protected void SetAnimatedValue<T>(CompositionProperty property, out T field, T value)
         {
+            if (ShouldEnterDebugMode())
+            {
+
+            }
+
             if (_animations.TryGetAndRemoveValue(property, out var animation) && IsActive) 
                 animation.Deactivate();
             field = value;
@@ -152,5 +162,15 @@ namespace Avalonia.Rendering.Composition.Server
         }
 
         public virtual CompositionProperty? GetCompositionProperty(string fieldName) => null;
+
+        private bool ShouldEnterDebugMode()
+        {
+            if (this.GetType().Name == "ServerBorderVisual")
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

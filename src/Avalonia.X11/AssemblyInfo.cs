@@ -1,0 +1,8 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+
+[assembly:InternalsVisibleTo("AvaloniaDemo, PublicKey=0024000004800000940000000602000000240000525341310004000001000100a7f4b8b7db0bfb8d74992dc94ecafae031019197ff4263d87ac0a5835fab101c973ccab6fa6e7d90e8f987374f7c6de18dd0b5cd7d6c41e574a8bc66b64836b7c7e707e1aa393d27e33a08f372c1c9965be81658937c85698f4a1c0f73be68a61ffce06d49d1366bf18464c20a29859ccf105fc2d5e35c7ae68919eab668bf8e")]

@@ -46,6 +46,36 @@
         </MenuItem>
       </MenuFlyout>
     </FlyoutBase.AttachedFlyout>
+
+    <TabItem Header="T">
+      <Grid>
+        <Rectangle x:Name="Rect"
+                   Width="200" Height="50"
+                   Fill="Red"/>
+        <Button Content="Trigger"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Click="Button_OnClick"/>
+      </Grid>
+    </TabItem>
+    <TabItem Header="Test">
+      <Grid>
+        <Border x:Name="ScanBorder" ZIndex="101" IsHitTestVisible="False" IsVisible="True" HorizontalAlignment="Center" VerticalAlignment="Top"
+                Height="220" Width="600">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+              <GradientStop Color="#0033CEFF" Offset="0" />
+              <GradientStop Color="#CC3592FF" Offset="1" />
+            </LinearGradientBrush>
+          </Border.Background>
+          <Border.RenderTransform>
+            <TranslateTransform />
+          </Border.RenderTransform>
+        </Border>
+
+        <Button x:Name="ControlButton" Content="Click" Click="ControlButton_OnClick"></Button>
+      </Grid>
+    </TabItem>
     <TabItem Header="Animations">
       <pages:AnimationsPage />
     </TabItem>
