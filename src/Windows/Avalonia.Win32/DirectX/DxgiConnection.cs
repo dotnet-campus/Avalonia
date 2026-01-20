@@ -61,33 +61,62 @@ namespace Avalonia.Win32.DirectX
                                     ?.Log(this, $"Failed to wait for vblank, Exception: {ex.Message}, HRESULT = {ex.HResult}");
             }
 
-            var lastTick = _stopwatch.Elapsed;
-            var fps = 100;
-            var _timeBetweenTicks = TimeSpan.FromSeconds(1d / fps);
+            //var lastTick = _stopwatch.Elapsed;
+            //var fps = 100;
+            //var _timeBetweenTicks = TimeSpan.FromSeconds(1d / fps);
 
             while (true)
             {
                 try
                 {
-                    var now = _stopwatch.Elapsed;
-                    var timeTillNextTick = lastTick + _timeBetweenTicks - now;
-                    if (timeTillNextTick.TotalMilliseconds > 1)
-                    {
-                        Thread.Sleep(timeTillNextTick);
-                    }
-                    else
-                    {
-                        //// 渲染超过时间
-                        //Console.WriteLine($"渲染超过时间");
-                    }
+                    //var now = _stopwatch.Elapsed;
+                    //var timeTillNextTick = lastTick + _timeBetweenTicks - now;
+                    //if (timeTillNextTick.TotalMilliseconds > 1)
+                    //{
+                    //    Thread.Sleep(timeTillNextTick);
+                    //}
+                    //else
+                    //{
+                    //    //// 渲染超过时间
+                    //    //Console.WriteLine($"渲染超过时间");
+                    //}
 
-                    lastTick = now = _stopwatch.Elapsed;
-                    Tick?.Invoke(now);
+                    //lastTick = now = _stopwatch.Elapsed;
+                    //Tick?.Invoke(now);
+
+                    lock (_syncLock)
+                    {
+                        if (_output is not null)
+                        {
+                            try
+                            {
+                                _output.WaitForVBlank();
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.TryGet(LogEventLevel.Error, LogArea)
+                                    ?.Log(this,
+                                        $"Failed to wait for vblank, Exception: {ex.Message}, HRESULT = {ex.HResult}");
+                                _output.Dispose();
+                                _output = null;
+                                GetBestOutputToVWaitOn();
+                            }
+                        }
+                        else
+                        {
+                            // well since that obviously didn't work, then let's use the lowest-common-denominator instead 
+                            // for reference, this has never happened on my machine,
+                            // but theoretically someone could have a weirder setup out there 
+                            DwmFlush();
+                        }
+
+                        Tick?.Invoke(_stopwatch.Elapsed);
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logger.TryGet(LogEventLevel.Error, LogArea)
-                                    ?.Log(this, $"Failed to wait for vblank, Exception: {ex.Message}, HRESULT = {ex.HResult}");
+                        ?.Log(this, $"Failed to wait for vblank, Exception: {ex.Message}, HRESULT = {ex.HResult}");
                 }
             }
         }
