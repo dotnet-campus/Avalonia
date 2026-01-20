@@ -30,7 +30,7 @@ namespace RenderDemo
                {
                    OverlayPopups = true,
                    RenderingMode = [Win32RenderingMode.AngleEgl],
-                   //CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
+                   CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
                })
                 .UsePlatformDetect()
                 .WithDeveloperTools()

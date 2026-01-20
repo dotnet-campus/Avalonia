@@ -66,38 +66,7 @@ internal class WinUiCompositorConnection : IRenderTimer, Win32.IWindowsSurfaceFa
                 return;
             }
 
-            Stopwatch _st = Stopwatch.StartNew();
-
-            Task.Run(async () =>
-            {
-                var lastTick = _st.Elapsed;
-                var fps = 65;
-                var _timeBetweenTicks = TimeSpan.FromSeconds(1d / fps);
-                while (true)
-                {
-                    var now = _st.Elapsed;
-                    var timeTillNextTick = lastTick + _timeBetweenTicks - now;
-                    if (timeTillNextTick.TotalMilliseconds > 1)
-                        //Thread.Sleep(timeTillNextTick);
-                    {
-                        await Task.Delay(timeTillNextTick);
-                    }
-                    lastTick = now = _st.Elapsed;
-                    //lock (_lock)
-                    //{
-                    //    if (_count == 0)
-                    //    {
-                    //        _running = false;
-                    //        return;
-                    //    }
-                    //}
-
-                    connect.Tick?.Invoke(now);
-                }
-            });
-
             connect.RunLoop();
-         
         })
         {
             IsBackground = true,
