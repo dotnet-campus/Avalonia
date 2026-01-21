@@ -39,6 +39,12 @@ public class StepPerformanceCounter
     }
 
     private readonly Dictionary<string, PerformanceCounter> _dictionary = [];
+
+    public void StepStop(string name)
+    {
+        var counterName = $"{RootName}.{name}";
+        _dictionary[counterName].StepStop();
+    }
 }
 
 public readonly record struct StepStartContext(PerformanceCounter Counter, StepPerformanceCounter Total) : IDisposable

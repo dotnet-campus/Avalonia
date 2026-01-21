@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -83,6 +83,8 @@ namespace Avalonia.Rendering.Composition.Server
             _redrawRequested = true;
             _fullRedrawRequested = true;
         }
+
+        private StepPerformanceCounter _counter = new StepPerformanceCounter(nameof(ServerCompositionTarget));
 
         public void Render()
         {
@@ -180,19 +182,29 @@ namespace Avalonia.Rendering.Composition.Server
                 {
                     if (_layer != null)
                     {
-                        using (var context = _layer.CreateDrawingContext(false))
-                            RenderRootToContextWithClip(context, Root);
-
-                        renderTargetContext.Clear(Colors.Transparent);
-                        renderTargetContext.Transform = Matrix.Identity;
-                        if (_layer.CanBlit)
-                            _layer.Blit(renderTargetContext);
-                        else
+                        using (_counter.StepStart("RenderRootToContextWithClip"))
                         {
-                            var rect = new PixelRect(default, PixelSize).ToRect(1);
-                            renderTargetContext.DrawBitmap(_layer, 1, rect, rect);
+                            using (var context = _layer.CreateDrawingContext(false))
+                                RenderRootToContextWithClip(context, Root);
                         }
-                        _overlays.Draw(renderTargetContext, true);
+
+                        using (_counter.StepStart("_layer.Blit"))
+                        {
+                            renderTargetContext.Clear(Colors.Transparent);
+                            renderTargetContext.Transform = Matrix.Identity;
+                            if (_layer.CanBlit)
+                                _layer.Blit(renderTargetContext);
+                            else
+                            {
+                                var rect = new PixelRect(default, PixelSize).ToRect(1);
+                                renderTargetContext.DrawBitmap(_layer, 1, rect, rect);
+                            }
+                        }
+
+                        using (_counter.StepStart("_overlays.Draw"))
+                        {
+                            _overlays.Draw(renderTargetContext, true);
+                        }
                     }
                     else
                     {

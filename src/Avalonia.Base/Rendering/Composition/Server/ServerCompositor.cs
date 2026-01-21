@@ -249,19 +249,19 @@ namespace Avalonia.Rendering.Composition.Server
             }
 
             // 经过测试，在这个 try 是最耗时的
-            using (_counter.StepStart("try"))
+            using (_counter.StepStart("try", false))
             {
                 try
                 {
                     if(!RenderInterface.IsReady)
                         return;
 
-                    using (_counter.StepStart("EnsureValidBackendContext"))
+                    using (_counter.StepStart("EnsureValidBackendContext", false))
                     {
                         RenderInterface.EnsureValidBackendContext();
                     }
 
-                    using (_counter.StepStart("ExecuteServerJobs(_receivedJobQueue)"))
+                    using (_counter.StepStart("ExecuteServerJobs(_receivedJobQueue)", false))
                     {
                         ExecuteServerJobs(_receivedJobQueue);
                     }
@@ -274,7 +274,7 @@ namespace Avalonia.Rendering.Composition.Server
                         }
                     }
 
-                    using (_counter.StepStart("ExecuteServerJobs(_receivedPostTargetJobQueue)"))
+                    using (_counter.StepStart("ExecuteServerJobs(_receivedPostTargetJobQueue)", false))
                     {
                         ExecuteServerJobs(_receivedPostTargetJobQueue);
                     }
