@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +10,9 @@ using Avalonia.OpenGL.Egl;
 using Avalonia.Rendering;
 
 using MicroCom.Runtime;
+
+using Windows.Win32;
+using Windows.Win32.Graphics.Gdi;
 
 using static Avalonia.Win32.DirectX.DirectXUnmanagedMethods;
 using static Avalonia.Win32.Interop.UnmanagedMethods;
@@ -136,6 +141,8 @@ namespace Avalonia.Win32.DirectX
 
             ushort adapterIndex = 0;
 
+            Dictionary<HMONITOR /*MonitorHandler*/, uint /*Frequency*/> monitorFrequencies = GetAllMonitorFrequencies();
+
             // this looks odd, but that's just how one enumerates adapters in DXGI 
             while (fact.EnumAdapters(adapterIndex, &adapterPointer) == 0)
             {
@@ -147,8 +154,12 @@ namespace Avalonia.Win32.DirectX
                     using var output = MicroComRuntime.CreateProxyFor<IDXGIOutput>(outputPointer, true);
                     DXGI_OUTPUT_DESC outputDesc = output.Desc;
 
-                    WinScreen? screen = Win32Platform.Instance.Screen.ScreenFromHMonitor((IntPtr)outputDesc.Monitor.Value);
-                    var frequency = screen?.Frequency ?? highestRefreshRate;
+                    var hMonitor = new HMONITOR(outputDesc.Monitor.Value);
+
+                    var frequency =
+                        monitorFrequencies.TryGetValue(hMonitor, out uint frequencyValue) ?
+                            frequencyValue :
+                            highestRefreshRate;
 
                     if (highestRefreshRate < frequency)
                     {
@@ -168,6 +179,33 @@ namespace Avalonia.Win32.DirectX
                 adapterIndex++;
             }
 
+        }
+
+        private unsafe Dictionary<HMONITOR /*MonitorHandler*/, uint /*Frequency*/> GetAllMonitorFrequencies()
+        {
+            var monitorHandlers = ScreenImpl.GetAllDisplayMonitorHandlers();
+            var dictionary = new Dictionary<HMONITOR /*MonitorHandler*/, uint /*Frequency*/>(monitorHandlers.Count);
+
+            foreach (var monitorHandler in monitorHandlers)
+            {
+                var info = MONITORINFOEX.Create();
+                var hMonitor = new HMONITOR(monitorHandler);
+                PInvoke.GetMonitorInfo(hMonitor, (MONITORINFO*)&info);
+
+                var deviceMode = new DEVMODEW
+                {
+                    dmFields = DEVMODE_FIELD_FLAGS.DM_DISPLAYORIENTATION | DEVMODE_FIELD_FLAGS.DM_DISPLAYFREQUENCY,
+                    dmSize = (ushort)Marshal.SizeOf<DEVMODEW>()
+                };
+                PInvoke.EnumDisplaySettings(info.szDevice.ToString(), ENUM_DISPLAY_SETTINGS_MODE.ENUM_CURRENT_SETTINGS,
+                    ref deviceMode);
+
+                var frequency = deviceMode.dmDisplayFrequency;
+
+                dictionary[hMonitor] = frequency;
+            }
+
+            return dictionary;
         }
 
         // Used the windows composition as a blueprint for this startup/creation 
