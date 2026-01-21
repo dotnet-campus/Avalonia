@@ -95,7 +95,7 @@ namespace Avalonia.Rendering
         /// <inheritdoc />
         public bool RunsInBackground => Timer.RunsInBackground;
 
-        private PerformanceCounter PerformanceCounter { get; } = new PerformanceCounter(nameof(RenderLoop));
+        private PerformanceCounter PerformanceCounter { get; } = new PerformanceCounter(nameof(RenderLoop), false/*因为发现 ServerCompositor.RenderCore 才是关键*/);
 
         private void TimerTick(TimeSpan time)
         {
