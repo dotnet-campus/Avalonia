@@ -124,7 +124,10 @@ namespace Avalonia.Rendering.Composition.Server
 
             Revision++;
 
-            _overlays.MarkUpdateCallStart();
+            using (_counter.StepStart("BeginCompositorUpdatePass"))
+            {
+
+                _overlays.MarkUpdateCallStart();
             using (Diagnostic.BeginCompositorUpdatePass())
             {
                 var transform = Matrix.CreateScale(Scaling, Scaling);
@@ -142,6 +145,7 @@ namespace Avalonia.Rendering.Composition.Server
 
                 _overlays.MarkUpdateCallEnd();
             }
+            }
 
             if (!_redrawRequested)
                 return;
@@ -153,7 +157,9 @@ namespace Avalonia.Rendering.Composition.Server
                             // Check if render target can be rendered to directly and preserves the previous frame
                             || !(renderTargetWithProperties?.Properties.RetainsPreviousFrameContents == true
                                 && renderTargetWithProperties?.Properties.IsSuitableForDirectRendering == true);
-            
+
+            using var x1 = _counter.StepStart("渲染的后半部分");
+
             using (var renderTargetContext = _renderTarget.CreateDrawingContextWithProperties(
                        this.PixelSize, out var properties))
             using (var renderTiming = Diagnostic.BeginCompositorRenderPass())

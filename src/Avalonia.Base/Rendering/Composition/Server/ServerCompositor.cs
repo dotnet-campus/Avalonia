@@ -204,7 +204,7 @@ namespace Avalonia.Rendering.Composition.Server
                     try
                     {
                         _safeThread = Thread.CurrentThread;
-                        using (_counter.StepStart("RenderCore"))
+                        using (_counter.StepStart("RenderCore",false))
                         {
                             RenderCore(catchExceptions);
                         }
@@ -266,7 +266,7 @@ namespace Avalonia.Rendering.Composition.Server
                         ExecuteServerJobs(_receivedJobQueue);
                     }
 
-                    using (_counter.StepStart("_activeTargets.Render"))
+                    using (_counter.StepStart("_activeTargets.Render",false))
                     {
                         foreach (var t in _activeTargets)
                         {
