@@ -1,7 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Threading;
+
 using Avalonia.Logging;
 using Avalonia.Platform;
 using Avalonia.Rendering.Composition.Animations;
@@ -189,6 +191,8 @@ namespace Avalonia.Rendering.Composition.Server
             else
                 RenderReentrancySafe(catchExceptions);
         }
+
+        private PerformanceCounter _counter = new PerformanceCounter($"{nameof(ServerCompositor)}.RenderCore");
         
         private void RenderReentrancySafe(bool catchExceptions)
         {
@@ -199,7 +203,9 @@ namespace Avalonia.Rendering.Composition.Server
                     try
                     {
                         _safeThread = Thread.CurrentThread;
+                        _counter.StepStart();
                         RenderCore(catchExceptions);
+                        _counter.StepStop();
                     }
                     finally
                     {

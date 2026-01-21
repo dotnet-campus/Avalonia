@@ -133,7 +133,7 @@ namespace Avalonia.Rendering
         }
     }
 
-    public class PerformanceCounter(string name)
+    public class PerformanceCounter(string name, bool enable = true)
     {
         public void StepStart()
         {
@@ -145,6 +145,11 @@ namespace Avalonia.Rendering
         {
             _stopwatch.Stop();
             _total += _stopwatch.Elapsed.TotalMilliseconds;
+
+            if (!enable)
+            {
+                return;
+            }
 
             if (_count > 100 && _total > 1000)
             {
