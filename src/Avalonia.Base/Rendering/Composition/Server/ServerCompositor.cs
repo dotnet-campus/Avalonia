@@ -10,6 +10,7 @@ using Avalonia.Rendering.Composition.Animations;
 using Avalonia.Rendering.Composition.Expressions;
 using Avalonia.Rendering.Composition.Transport;
 using Avalonia.Threading;
+using Avalonia.Utilities;
 
 namespace Avalonia.Rendering.Composition.Server
 {
@@ -192,7 +193,7 @@ namespace Avalonia.Rendering.Composition.Server
                 RenderReentrancySafe(catchExceptions);
         }
 
-        private PerformanceCounter _counter = new PerformanceCounter($"{nameof(ServerCompositor)}.RenderCore");
+        private StepPerformanceCounter _counter = new ($"{nameof(ServerCompositor)}");
         
         private void RenderReentrancySafe(bool catchExceptions)
         {
@@ -203,9 +204,10 @@ namespace Avalonia.Rendering.Composition.Server
                     try
                     {
                         _safeThread = Thread.CurrentThread;
-                        _counter.StepStart();
-                        RenderCore(catchExceptions);
-                        _counter.StepStop();
+                        using (_counter.StepStart("RenderCore"))
+                        {
+                            RenderCore(catchExceptions);
+                        }
                     }
                     finally
                     {
@@ -221,28 +223,47 @@ namespace Avalonia.Rendering.Composition.Server
         
         private void RenderCore(bool catchExceptions)
         {
-            UpdateServerTime();
-            ApplyPendingBatches();
-            NotifyBatchesProcessed();
-
-            Animations.Process();
-
-
-            ApplyEnqueuedRenderResourceChanges();
-            
-            try
+            using (_counter.StepStart("UpdateServerTime"))
             {
-                if(!RenderInterface.IsReady)
-                    return;
-                RenderInterface.EnsureValidBackendContext();
-                ExecuteServerJobs(_receivedJobQueue);
-                foreach (var t in _activeTargets)
-                    t.Render();
-                ExecuteServerJobs(_receivedPostTargetJobQueue);
+                UpdateServerTime();
             }
-            catch (Exception e) when(RT_OnContextLostExceptionFilterObserver(e) && catchExceptions)
+
+            using (_counter.StepStart("ApplyPendingBatches"))
             {
-                Logger.TryGet(LogEventLevel.Error, LogArea.Visual)?.Log(this, "Exception when rendering: {Error}", e);
+                ApplyPendingBatches();
+            }
+
+            using (_counter.StepStart("NotifyBatchesProcessed"))
+            {
+                NotifyBatchesProcessed();
+            }
+
+            using (_counter.StepStart("Animations.Process"))
+            {
+                Animations.Process();
+            }
+
+            using (_counter.StepStart("ApplyEnqueuedRenderResourceChanges"))
+            {
+                ApplyEnqueuedRenderResourceChanges();
+            }
+
+            using (_counter.StepStart("try"))
+            {
+                try
+                {
+                    if(!RenderInterface.IsReady)
+                        return;
+                    RenderInterface.EnsureValidBackendContext();
+                    ExecuteServerJobs(_receivedJobQueue);
+                    foreach (var t in _activeTargets)
+                        t.Render();
+                    ExecuteServerJobs(_receivedPostTargetJobQueue);
+                }
+                catch (Exception e) when(RT_OnContextLostExceptionFilterObserver(e) && catchExceptions)
+                {
+                    Logger.TryGet(LogEventLevel.Error, LogArea.Visual)?.Log(this, "Exception when rendering: {Error}", e);
+                }
             }
         }
 

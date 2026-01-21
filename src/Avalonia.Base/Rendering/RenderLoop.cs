@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.Intrinsics.X86;
 using System.Threading;
 
 using Avalonia.Logging;
 using Avalonia.Threading;
+using Avalonia.Utilities;
 
 namespace Avalonia.Rendering
 {
@@ -131,40 +131,5 @@ namespace Avalonia.Rendering
                 }
             }
         }
-    }
-
-    public class PerformanceCounter(string name, bool enable = true)
-    {
-        public void StepStart()
-        {
-            _stopwatch.Restart();
-            _count++;
-        }
-
-        public void StepStop()
-        {
-            _stopwatch.Stop();
-            _total += _stopwatch.Elapsed.TotalMilliseconds;
-
-            if (!enable)
-            {
-                return;
-            }
-
-            if (_count > 100 && _total > 1000)
-            {
-                var ave = _total / _count;
-
-                Console.WriteLine($"[{name}] 平均毫秒： {ave}");
-
-                _count = 0;
-                _total = 0;
-            }
-        }
-
-
-        private Stopwatch _stopwatch = Stopwatch.StartNew();
-        private double _total;
-        private int _count;
     }
 }
