@@ -223,31 +223,32 @@ namespace Avalonia.Rendering.Composition.Server
         
         private void RenderCore(bool catchExceptions)
         {
-            using (_counter.StepStart("UpdateServerTime"))
+            using (_counter.StepStart("UpdateServerTime",false))
             {
                 UpdateServerTime();
             }
 
-            using (_counter.StepStart("ApplyPendingBatches"))
+            using (_counter.StepStart("ApplyPendingBatches", false))
             {
                 ApplyPendingBatches();
             }
 
-            using (_counter.StepStart("NotifyBatchesProcessed"))
+            using (_counter.StepStart("NotifyBatchesProcessed", false))
             {
                 NotifyBatchesProcessed();
             }
 
-            using (_counter.StepStart("Animations.Process"))
+            using (_counter.StepStart("Animations.Process", false))
             {
                 Animations.Process();
             }
 
-            using (_counter.StepStart("ApplyEnqueuedRenderResourceChanges"))
+            using (_counter.StepStart("ApplyEnqueuedRenderResourceChanges", false))
             {
                 ApplyEnqueuedRenderResourceChanges();
             }
 
+            // 经过测试，在这个 try 是最耗时的
             using (_counter.StepStart("try"))
             {
                 try
