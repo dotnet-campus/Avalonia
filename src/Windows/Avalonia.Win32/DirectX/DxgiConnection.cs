@@ -147,7 +147,7 @@ namespace Avalonia.Win32.DirectX
                     using var output = MicroComRuntime.CreateProxyFor<IDXGIOutput>(outputPointer, true);
                     DXGI_OUTPUT_DESC outputDesc = output.Desc;
 
-                    WinScreen? screen = null;// Win32Platform.Instance.Screen.ScreenFromHMonitor((IntPtr)outputDesc.Monitor.Value);
+                    WinScreen? screen = Win32Platform.Instance.Screen.ScreenFromHMonitor((IntPtr)outputDesc.Monitor.Value);
                     var frequency = screen?.Frequency ?? highestRefreshRate;
 
                     if (highestRefreshRate < frequency)
