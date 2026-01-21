@@ -1,8 +1,12 @@
-using System;
+﻿using System;
+using System.Diagnostics.Metrics;
 using System.IO;
-using Avalonia.Reactive;
+
 using Avalonia.Platform;
+using Avalonia.Reactive;
 using Avalonia.Skia.Helpers;
+using Avalonia.Utilities;
+
 using SkiaSharp;
 
 namespace Avalonia.Skia
@@ -142,6 +146,8 @@ namespace Avalonia.Skia
             }
         }
 
+        private PerformanceCounter _counter = new PerformanceCounter("Blit");
+
         public void Blit(IDrawingContextImpl contextImpl)
         {
             var context = (DrawingContextImpl)contextImpl;
@@ -149,7 +155,9 @@ namespace Avalonia.Skia
             if (_surface.CanBlit)
             {
                 _surface.Surface.Canvas.Flush();
+                _counter.StepStart();
                 _surface.Blit(context.Canvas);
+                _counter.StepStop();
             }
             else
             {
