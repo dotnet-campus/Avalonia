@@ -75,6 +75,8 @@ namespace Avalonia.Win32.DirectX
             _clientRect = pClientRect;
         }
 
+        private EglSurface? _surface;
+
         /// <inheritdoc />
         public override IGlPlatformSurfaceRenderingSession BeginDrawCore()
         {
@@ -84,7 +86,7 @@ namespace Avalonia.Win32.DirectX
             }
 
             var contextLock = Context.EnsureCurrent();
-            EglSurface? surface = null;
+            //EglSurface? surface = null;
             IDisposable? transaction = null;
             var success = false;
             try
@@ -115,6 +117,9 @@ namespace Avalonia.Win32.DirectX
                 var texture = _renderTexture;
                 if (texture is null)
                 {
+                    _surface?.Dispose();
+                    _surface = null;
+
                     Guid textureGuid = ID3D11Texture2DGuid;
                     texture = MicroComRuntime.CreateProxyFor<IUnknown>(_swapChain.GetBuffer(0, &textureGuid), true);
                 }
@@ -123,16 +128,19 @@ namespace Avalonia.Win32.DirectX
                 // 经过测试，这句话是耗时的 WrapDirect3D11Texture
                 StepPerformanceCounter.RenderThreadCounter.StepStart("WrapDirect3D11Texture");
 
-                // I also have to get the pointer to this texture directly 
-                surface = ((AngleWin32EglDisplay)Context.Display).WrapDirect3D11Texture(MicroComRuntime.GetNativeIntPtr(_renderTexture),
-                    0, 0, size.Width, size.Height);
+                if (_surface is null)
+                {
+                    // I also have to get the pointer to this texture directly 
+                    _surface = ((AngleWin32EglDisplay)Context.Display).WrapDirect3D11Texture(MicroComRuntime.GetNativeIntPtr(_renderTexture),
+                        0, 0, size.Width, size.Height);
+                }
 
                 StepPerformanceCounter.RenderThreadCounter.StepStop("WrapDirect3D11Texture");
 
-                var res = base.BeginDraw(surface, _window.Size, _window.Scaling, () =>
+                var res = base.BeginDraw(_surface, _window.Size, _window.Scaling, () =>
                 {
                     _swapChain.Present((ushort)0U, (ushort)0U);
-                    surface.Dispose();
+                    //surface.Dispose();
                     transaction?.Dispose();
                     contextLock?.Dispose();
                 }, true);
@@ -143,7 +151,8 @@ namespace Avalonia.Win32.DirectX
             {
                 if (!success)
                 {
-                    surface?.Dispose();
+                    _surface?.Dispose();
+                    _surface = null;
                     if (_renderTexture is not null)
                     {
                         _renderTexture.Dispose();
