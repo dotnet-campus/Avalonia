@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Threading;
+
 using Avalonia.Collections.Pooled;
 using Avalonia.Diagnostics;
 using Avalonia.Media;
@@ -160,73 +162,86 @@ namespace Avalonia.Rendering.Composition.Server
 
             using var x1 = _counter.StepStart("渲染的后半部分");
 
-            using (var renderTargetContext = _renderTarget.CreateDrawingContextWithProperties(
-                       this.PixelSize, out var properties))
-            using (var renderTiming = Diagnostic.BeginCompositorRenderPass())
+            _counter.StepStart("CreateDrawingContextWithProperties");
+            var renderTargetContext = _renderTarget.CreateDrawingContextWithProperties(
+                this.PixelSize, out var properties);
+            _counter.StepStop("CreateDrawingContextWithProperties");
+
+            try
             {
-                using (var cubeaqeajehayneCukenurha = _counter.StepStart("渲染的内容部分"))
+                //using (var renderTiming = Diagnostic.BeginCompositorRenderPass())
                 {
+                    using (var cubeaqeajehayneCukenurha = _counter.StepStart("渲染的内容部分"))
+                    {
                     
 
-                if (needLayer && (PixelSize != _layerSize || _layer == null || _layer.IsCorrupted))
-                {
-                    _layer?.Dispose();
-                    _layer = null;
-                    _layer = renderTargetContext.CreateLayer(PixelSize);
-                    _layerSize = PixelSize;
-                    DirtyRects.AddRect(new LtrbPixelRect(_layerSize));
-                }
-                else if (!needLayer)
-                {
-                    _layer?.Dispose();
-                    _layer = null;
-                }
-
-                if (_fullRedrawRequested || (!needLayer && !properties.PreviousFrameIsRetained))
-                {
-                    DirtyRects.AddRect(new LtrbPixelRect(_layerSize));
-                    _fullRedrawRequested = false;
-                }
-
-                if (!DirtyRects.IsEmpty)
-                {
-                    if (_layer != null)
-                    {
-                        using (_counter.StepStart("RenderRootToContextWithClip"))
+                        if (needLayer && (PixelSize != _layerSize || _layer == null || _layer.IsCorrupted))
                         {
-                            using (var context = _layer.CreateDrawingContext(false))
-                                RenderRootToContextWithClip(context, Root);
+                            _layer?.Dispose();
+                            _layer = null;
+                            _layer = renderTargetContext.CreateLayer(PixelSize);
+                            _layerSize = PixelSize;
+                            DirtyRects.AddRect(new LtrbPixelRect(_layerSize));
+                        }
+                        else if (!needLayer)
+                        {
+                            _layer?.Dispose();
+                            _layer = null;
                         }
 
-                        using (_counter.StepStart("_layer.Blit"))
+                        if (_fullRedrawRequested || (!needLayer && !properties.PreviousFrameIsRetained))
                         {
-                            renderTargetContext.Clear(Colors.Transparent);
-                            renderTargetContext.Transform = Matrix.Identity;
-                            if (_layer.CanBlit)
-                                _layer.Blit(renderTargetContext);
+                            DirtyRects.AddRect(new LtrbPixelRect(_layerSize));
+                            _fullRedrawRequested = false;
+                        }
+
+                        if (!DirtyRects.IsEmpty)
+                        {
+                            if (_layer != null)
+                            {
+                                using (_counter.StepStart("RenderRootToContextWithClip"))
+                                {
+                                    using (var context = _layer.CreateDrawingContext(false))
+                                        RenderRootToContextWithClip(context, Root);
+                                }
+
+                                using (_counter.StepStart("_layer.Blit"))
+                                {
+                                    renderTargetContext.Clear(Colors.Transparent);
+                                    renderTargetContext.Transform = Matrix.Identity;
+                                    if (_layer.CanBlit)
+                                        _layer.Blit(renderTargetContext);
+                                    else
+                                    {
+                                        var rect = new PixelRect(default, PixelSize).ToRect(1);
+                                        renderTargetContext.DrawBitmap(_layer, 1, rect, rect);
+                                    }
+                                }
+
+                                using (_counter.StepStart("_overlays.Draw"))
+                                {
+                                    _overlays.Draw(renderTargetContext, true);
+                                }
+                            }
                             else
                             {
-                                var rect = new PixelRect(default, PixelSize).ToRect(1);
-                                renderTargetContext.DrawBitmap(_layer, 1, rect, rect);
+                                RenderRootToContextWithClip(renderTargetContext, Root);
+                                _overlays.Draw(renderTargetContext, false);
                             }
                         }
 
-                        using (_counter.StepStart("_overlays.Draw"))
-                        {
-                            _overlays.Draw(renderTargetContext, true);
-                        }
-                    }
-                    else
-                    {
-                        RenderRootToContextWithClip(renderTargetContext, Root);
-                        _overlays.Draw(renderTargetContext, false);
+                        RenderedVisuals = 0;
+
+                        _redrawRequested = false;
+                        DirtyRects.Reset();
                     }
                 }
-
-                RenderedVisuals = 0;
-
-                _redrawRequested = false;
-                DirtyRects.Reset();
+            }
+            finally
+            {
+                using (_counter.StepStart(" renderTargetContext.Dispose"))
+                {
+                    renderTargetContext.Dispose();
                 }
             }
         }
