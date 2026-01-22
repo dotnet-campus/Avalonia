@@ -120,6 +120,7 @@ namespace Avalonia.Win32.DirectX
                 }
                 _renderTexture = texture;
 
+                // 经过测试，这句话是耗时的 WrapDirect3D11Texture
                 StepPerformanceCounter.RenderThreadCounter.StepStart("WrapDirect3D11Texture");
 
                 // I also have to get the pointer to this texture directly 
