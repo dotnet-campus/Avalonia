@@ -99,6 +99,9 @@ namespace Avalonia.Win32.DirectX
 
                     if (_renderTexture is not null)
                     {
+                        _surface?.Dispose();
+                        _surface = null;
+
                         _renderTexture.Dispose();
                         _renderTexture = null;
                     }
