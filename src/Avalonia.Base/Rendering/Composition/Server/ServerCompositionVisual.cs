@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using Avalonia.Media;
 using Avalonia.Platform;
@@ -219,8 +219,6 @@ namespace Avalonia.Rendering.Composition.Server
                  
                 _clipSizeDirty = false;
             }
-
-            Root!.PixelSize = new PixelSize(10000, 10000);
 
             _combinedTransformedClipBounds =
                 (AdornerIsClipped ? AdornedVisual?._combinedTransformedClipBounds : null)
