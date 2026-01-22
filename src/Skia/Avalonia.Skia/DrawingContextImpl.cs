@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -760,11 +760,16 @@ namespace Avalonia.Skia
             RenderOptions = _renderOptionsStack.Pop();
         }
 
+        private StepPerformanceCounter _counter = new(nameof(DrawingContextImpl));
+
         /// <inheritdoc />
         public virtual void Dispose()
         {
             if(_disposed)
                 return;
+
+            using var xx = _counter.StepStart("Dispose"); // 释放不耗时
+
             CheckLease();
             try
             {
