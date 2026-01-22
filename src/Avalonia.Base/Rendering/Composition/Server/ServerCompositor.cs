@@ -204,7 +204,7 @@ namespace Avalonia.Rendering.Composition.Server
                     try
                     {
                         _safeThread = Thread.CurrentThread;
-                        using (_counter.StepStart("RenderCore",false))
+                        using (_counter.StepStart("RenderCore"))
                         {
                             RenderCore(catchExceptions);
                         }
@@ -266,6 +266,7 @@ namespace Avalonia.Rendering.Composition.Server
                         ExecuteServerJobs(_receivedJobQueue);
                     }
 
+                    // 在 _activeTargets.Render 是耗时的
                     using (_counter.StepStart("_activeTargets.Render",false))
                     {
                         foreach (var t in _activeTargets)

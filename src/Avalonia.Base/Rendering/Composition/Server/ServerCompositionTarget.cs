@@ -164,7 +164,11 @@ namespace Avalonia.Rendering.Composition.Server
                        this.PixelSize, out var properties))
             using (var renderTiming = Diagnostic.BeginCompositorRenderPass())
             {
-                if(needLayer && (PixelSize != _layerSize || _layer == null || _layer.IsCorrupted))
+                using (var cubeaqeajehayneCukenurha = _counter.StepStart("渲染的内容部分"))
+                {
+                    
+
+                if (needLayer && (PixelSize != _layerSize || _layer == null || _layer.IsCorrupted))
                 {
                     _layer?.Dispose();
                     _layer = null;
@@ -223,6 +227,7 @@ namespace Avalonia.Rendering.Composition.Server
 
                 _redrawRequested = false;
                 DirtyRects.Reset();
+                }
             }
         }
 
