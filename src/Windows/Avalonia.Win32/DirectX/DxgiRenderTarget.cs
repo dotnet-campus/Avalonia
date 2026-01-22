@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia.OpenGL.Egl;
 using Avalonia.OpenGL.Surfaces;
+using Avalonia.Utilities;
 using Avalonia.Win32.OpenGl.Angle;
 using MicroCom.Runtime;
 using static Avalonia.Win32.Interop.UnmanagedMethods;
@@ -119,9 +120,13 @@ namespace Avalonia.Win32.DirectX
                 }
                 _renderTexture = texture;
 
+                StepPerformanceCounter.RenderThreadCounter.StepStart("WrapDirect3D11Texture");
+
                 // I also have to get the pointer to this texture directly 
                 surface = ((AngleWin32EglDisplay)Context.Display).WrapDirect3D11Texture(MicroComRuntime.GetNativeIntPtr(_renderTexture),
                     0, 0, size.Width, size.Height);
+
+                StepPerformanceCounter.RenderThreadCounter.StepStop("WrapDirect3D11Texture");
 
                 var res = base.BeginDraw(surface, _window.Size, _window.Scaling, () =>
                 {

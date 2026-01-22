@@ -13,6 +13,8 @@ public class StepPerformanceCounter
 
     private string RootName { get; }
 
+    public static readonly StepPerformanceCounter RenderThreadCounter = new StepPerformanceCounter("Render");
+
     public StepStartContext StepStart(string name, bool enable = true, bool isMainStep = false)
     {
         var counterName = $"{RootName}.{name}";

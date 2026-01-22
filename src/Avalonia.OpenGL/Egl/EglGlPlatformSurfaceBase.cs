@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using Avalonia.OpenGL.Surfaces;
+using Avalonia.Utilities;
 
 namespace Avalonia.OpenGL.Egl
 {
@@ -34,20 +35,25 @@ namespace Avalonia.OpenGL.Egl
 
         public abstract IGlPlatformSurfaceRenderingSession BeginDrawCore();
 
+        private StepPerformanceCounter _counter = new StepPerformanceCounter(nameof(EglGlPlatformSurfaceBase));
+
         protected IGlPlatformSurfaceRenderingSession BeginDraw(EglSurface surface,
             PixelSize size, double scaling, Action? onFinish = null, bool isYFlipped = false)
         {
-
             var restoreContext = Context.MakeCurrent(surface);
             var success = false;
             try
             {
                 var egli = Context.Display.EglInterface;
+
+                using (_counter.StepStart("egli.WaitClient WaitGL"))
+                {
                 if (!SkipWaits)
                 {
                     egli.WaitClient();
                     egli.WaitGL();
                     egli.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
+                }
                 }
 
                 Context.GlInterface.BindFramebuffer(GlConsts.GL_FRAMEBUFFER, 0);
