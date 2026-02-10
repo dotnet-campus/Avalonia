@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
@@ -29,6 +29,7 @@ namespace RenderDemo
                .With(new Win32PlatformOptions
                {
                    OverlayPopups = true,
+                   CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
                })
                 .UsePlatformDetect()
                 .WithDeveloperTools()
