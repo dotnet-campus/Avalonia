@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+
 using Avalonia.Collections.Pooled;
 using Avalonia.Controls;
 using Avalonia.Controls.Platform;
@@ -11,21 +12,23 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Input.Raw;
 using Avalonia.Input.TextInput;
+using Avalonia.Logging;
 using Avalonia.OpenGL.Egl;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Avalonia.Platform.Storage.FileIO;
 using Avalonia.Rendering.Composition;
+using Avalonia.Threading;
 using Avalonia.Win32.DirectX;
 using Avalonia.Win32.Input;
 using Avalonia.Win32.Interop;
 using Avalonia.Win32.OpenGl;
 using Avalonia.Win32.OpenGl.Angle;
 using Avalonia.Win32.WinRT.Composition;
-using static Avalonia.Win32.Interop.UnmanagedMethods;
-using Avalonia.Platform.Storage.FileIO;
-using Avalonia.Threading;
+
 using static Avalonia.Controls.Win32Properties;
-using Avalonia.Logging;
+using static Avalonia.Rendering.Composition.Animations.PropertySetSnapshot;
+using static Avalonia.Win32.Interop.UnmanagedMethods;
 
 namespace Avalonia.Win32
 {
@@ -177,7 +180,10 @@ namespace Avalonia.Win32
             _nativeControlHost = new Win32NativeControlHost(this, !UseRedirectionBitmap);
             _defaultTransparencyLevel = UseRedirectionBitmap ? WindowTransparencyLevel.None : WindowTransparencyLevel.Transparent;
             _transparencyLevel = _defaultTransparencyLevel;
-            s_instances.Add(this);
+            SetTransparencyLevel(_transparencyLevel);
+
+            lock (s_instances)
+                s_instances.Add(this);
         }
 
         internal IInputRoot Owner
@@ -318,6 +324,7 @@ namespace Avalonia.Win32
                 if (_transparencyLevel != value)
                 {
                     _transparencyLevel = value;
+                    SetTransparencyLevel(value);
                     TransparencyLevelChanged?.Invoke(value);
                 }
             }
@@ -501,6 +508,11 @@ namespace Avalonia.Win32
             var pvUseBackdropBrush = useHostBackdropBrush ? 1 : 0;
             var result = DwmSetWindowAttribute(_hwnd, (int)DwmWindowAttribute.DWMWA_USE_HOSTBACKDROPBRUSH, &pvUseBackdropBrush, sizeof(int));
             return result == 0;
+        }
+
+        private void SetTransparencyLevel(WindowTransparencyLevel transparencyLevel)
+        {
+            CompositionEffectsSurface?.SetTransparencyLevel(transparencyLevel);
         }
 
         public IEnumerable<object> Surfaces
