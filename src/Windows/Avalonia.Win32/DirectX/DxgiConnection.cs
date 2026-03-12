@@ -208,12 +208,22 @@ namespace Avalonia.Win32.DirectX
             });
             thread.IsBackground = true;
             thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.Name = "DxgiRenderTimerLoop";
             thread.Start();
             // block until 
             return tcs.Task.Result;
         }
 
-        public bool RequiresNoRedirectionBitmap => false;
-        public object CreateSurface(EglGlPlatformSurface.IEglWindowGlPlatformSurfaceInfo info) => new DxgiSwapchainWindow(this, info);
+        public bool RequiresNoRedirectionBitmap => IsTransparencySupported() 
+            ? true 
+            : false;
+
+        public IPlatformRenderSurface CreateSurface(EglGlPlatformSurface.IEglWindowGlPlatformSurfaceInfo info) => new DxgiSwapchainWindow(this, info);
+
+        public static bool IsTransparencySupported()
+        {
+            // We can use the DirectComposited+CreateSwapChainForComposition to create the Transparency window.
+            return Win32Platform.WindowsVersion >= PlatformConstants.Windows8_1;
+        }
     }
 }
