@@ -12,7 +12,26 @@
             <Button Content="Hi" />
         </Border>
 
-        <Rectangle Width="200" Height="200" Fill="Red"></Rectangle>
+        <Rectangle x:Name="TheFakeUI" Grid.Row="0" Width="500" Height="200" Fill="Red"
+                   Margin="10,10,10,100"
+                   VerticalAlignment="Bottom">
+          <Rectangle.Styles>
+            <Style Selector="Rectangle">
+              <Setter Property="StrokeThickness" Value="5"></Setter>
+              <Setter Property="Stroke" Value="Blue"></Setter>
+              <Style.Animations>
+                <Animation Duration="0:0:5.5"
+                           Easing="QuadraticEaseInOut"
+                           IterationCount="Infinite">
+                  <KeyFrame Cue="50%">
+                    <Setter Property="TranslateTransform.Y" Value="-500"></Setter>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.6"/>
+                  </KeyFrame>
+                </Animation>
+              </Style.Animations>
+            </Style>
+          </Rectangle.Styles>
+        </Rectangle>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" IsVisible="False">
           <Button x:Name="SetTransparencyButton" Click="SetTransparencyButton_OnClick">Transparency</Button>
