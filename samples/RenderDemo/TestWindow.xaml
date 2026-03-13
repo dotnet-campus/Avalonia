@@ -6,8 +6,18 @@
         xmlns:viewModels="using:RenderDemo.ViewModels"
         Background="Transparent"
         Title="AvaloniaUI Rendering Test"
-        Effect="blur(10)">
-    <Border >
-        <Button Content="Hi" />
-    </Border>
+        WindowState="FullScreen">
+    <Grid RowDefinitions="*,Auto">
+        <Border >
+            <Button Content="Hi" />
+        </Border>
+
+        <Rectangle Width="200" Height="200" Fill="Red"></Rectangle>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" IsVisible="False">
+          <Button x:Name="SetTransparencyButton" Click="SetTransparencyButton_OnClick">Transparency</Button>
+            <Button x:Name="SetNotTransparencyButton" Click="SetNotTransparencyButton_OnClick">NotTransparency</Button>
+        </StackPanel>
+    </Grid>
+
 </Window>

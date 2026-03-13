@@ -14,12 +14,21 @@ namespace RenderDemo
         public TestWindow()
         {
             InitializeComponent();
-            TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
         }
 
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+        private void SetTransparencyButton_OnClick(object? sender, RoutedEventArgs e)
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
+        }
+
+        private void SetNotTransparencyButton_OnClick(object? sender, RoutedEventArgs e)
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.None];
         }
     }
 }
