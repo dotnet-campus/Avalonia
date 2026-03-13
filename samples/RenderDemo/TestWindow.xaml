@@ -1,0 +1,13 @@
+<Window x:Class="RenderDemo.TestWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:ControlSamples"
+        xmlns:pages="using:RenderDemo.Pages"
+        xmlns:viewModels="using:RenderDemo.ViewModels"
+        Background="Transparent"
+        Title="AvaloniaUI Rendering Test"
+        Effect="blur(10)">
+    <Border >
+        <Button Content="Hi" />
+    </Border>
+</Window>

@@ -14,7 +14,7 @@ namespace RenderDemo
         public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                desktop.MainWindow = new MainWindow();
+                desktop.MainWindow = new TestWindow();
             base.OnFrameworkInitializationCompleted();
         }
 
@@ -29,6 +29,7 @@ namespace RenderDemo
                .With(new Win32PlatformOptions
                {
                    OverlayPopups = true,
+                   CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
                })
                 .UsePlatformDetect()
                 .WithDeveloperTools()
