@@ -136,10 +136,7 @@ namespace Avalonia.Win32.DirectX
                 );
             }
 
-            _dxgiFactory.MakeWindowAssociation(window.Handle, (uint)(DXGI_MWA.DXGI_MWA_NO_ALT_ENTER | DXGI_MWA.DXGI_MWA_NO_PRINT_SCREEN));
-
-            GetClientRect(_window.Handle, out var pClientRect);
-            _clientRect = pClientRect;
+            _dxgiFactory.MakeWindowAssociation(windowInfo.Handle, (uint)(DXGI_MWA.DXGI_MWA_NO_ALT_ENTER | DXGI_MWA.DXGI_MWA_NO_PRINT_SCREEN));
         }
 
         /// <inheritdoc />
@@ -155,8 +152,8 @@ namespace Avalonia.Win32.DirectX
             var success = false;
             try
             {
-                var size = sceneInfo.Size;
-                var scale = sceneInfo.Scaling;
+                var size = _window.Size;
+                var scale = _window.Scaling;
 
                 var shouldTransparency = IsTransparency && DxgiConnection.IsTransparencySupported();
                 var isSupportTransparency = _swapChain.Desc1.AlphaMode is DXGI_ALPHA_MODE.DXGI_ALPHA_MODE_PREMULTIPLIED or DXGI_ALPHA_MODE.DXGI_ALPHA_MODE_STRAIGHT;

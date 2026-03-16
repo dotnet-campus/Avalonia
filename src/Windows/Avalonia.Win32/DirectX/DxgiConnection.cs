@@ -131,7 +131,7 @@ namespace Avalonia.Win32.DirectX
                     using var output = MicroComRuntime.CreateProxyFor<IDXGIOutput>(outputPointer, true);
                     DXGI_OUTPUT_DESC outputDesc = output.Desc;
 
-                    var hMonitor = new HMONITOR(outputDesc.Monitor.Value);
+                    var hMonitor = new HMONITOR((nint) outputDesc.Monitor.Value);
 
                     var frequency =
                         monitorFrequencies.TryGetValue(hMonitor, out uint frequencyValue) ?
@@ -218,7 +218,7 @@ namespace Avalonia.Win32.DirectX
             ? true 
             : false;
 
-        public IPlatformRenderSurface CreateSurface(EglGlPlatformSurface.IEglWindowGlPlatformSurfaceInfo info) => new DxgiSwapchainWindow(this, info);
+        public object CreateSurface(EglGlPlatformSurface.IEglWindowGlPlatformSurfaceInfo info) => new DxgiSwapchainWindow(this, info);
 
         public static bool IsTransparencySupported()
         {
