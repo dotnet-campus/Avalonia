@@ -9,5 +9,7 @@
       <AddSyntheticProjectReferencesForSolutionDependencies>false</AddSyntheticProjectReferencesForSolutionDependencies>
       <RunApiCompat>False</RunApiCompat>
       <LangVersion>12</LangVersion>
+
+      <CheckEolWorkloads>false</CheckEolWorkloads>
   </PropertyGroup>
 </Project>

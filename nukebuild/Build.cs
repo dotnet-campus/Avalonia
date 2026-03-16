@@ -124,14 +124,14 @@ partial class Build : NukeBuild
         .OnlyWhenStatic(() => !Parameters.SkipPreviewer)
         .Executes(() =>
         {
-            var webappDir = RootDirectory / "src" / "Avalonia.DesignerSupport" / "Remote" / "HtmlTransport" / "webapp";
+            //var webappDir = RootDirectory / "src" / "Avalonia.DesignerSupport" / "Remote" / "HtmlTransport" / "webapp";
 
-            NpmTasks.NpmInstall(c => c
-                .SetProcessWorkingDirectory(webappDir)
-                .SetProcessArgumentConfigurator(a => a.Add("--silent")));
-            NpmTasks.NpmRun(c => c
-                .SetProcessWorkingDirectory(webappDir)
-                .SetCommand("dist"));
+            //NpmTasks.NpmInstall(c => c
+            //    .SetProcessWorkingDirectory(webappDir)
+            //    .SetProcessArgumentConfigurator(a => a.Add("--silent")));
+            //NpmTasks.NpmRun(c => c
+            //    .SetProcessWorkingDirectory(webappDir)
+            //    .SetCommand("dist"));
         });
 
     Target CompileNative => _ => _

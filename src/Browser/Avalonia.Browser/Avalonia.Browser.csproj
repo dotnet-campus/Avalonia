@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(AvsCurrentTargetFramework);$(AvsCurrentBrowserTargetFramework)</TargetFrameworks>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AvsIncludeSkiaSharp3>true</AvsIncludeSkiaSharp3>
   </PropertyGroup>
 
   <ItemGroup>
