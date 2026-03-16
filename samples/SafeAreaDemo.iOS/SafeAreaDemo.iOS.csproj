@@ -9,5 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SafeAreaDemo\SafeAreaDemo.csproj" />
+    <ProjectReference Include="..\..\src\iOS\Avalonia.iOS\Avalonia.iOS.csproj" />
   </ItemGroup>
 </Project>

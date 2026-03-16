@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SafeAreaDemo\SafeAreaDemo.csproj" />
+    <ProjectReference Include="..\..\src\Android\Avalonia.Android\Avalonia.Android.csproj" />
   </ItemGroup>
 
   <ItemGroup>
