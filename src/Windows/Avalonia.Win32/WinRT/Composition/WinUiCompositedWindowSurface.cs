@@ -114,12 +114,16 @@ namespace Avalonia.Win32.WinRT.Composition
         [MemberNotNull(nameof(_drawingSurface), nameof(_surface), nameof(_surfaceInterop))]
         private void CreateSurface(WinUiCompositedWindow window)
         {
+            Console.WriteLine("=============================");
             // Do not use Premultiplied when the window is not Transparency. Because the Premultiplied AlphaMode will increase the performance loss of DWM. See https://github.com/AvaloniaUI/Avalonia/issues/20643
             var alphaMode = window.IsTransparency ? DirectXAlphaMode.Premultiplied : DirectXAlphaMode.Ignore;
             _drawingSurface = _compositionDevice2.CreateDrawingSurface2(new UnmanagedMethods.SIZE(),
                 DirectXPixelFormat.B8G8R8A8UIntNormalized, alphaMode);
             _surface = _drawingSurface.QueryInterface<ICompositionSurface>();
             _surfaceInterop = _drawingSurface.QueryInterface<ICompositionDrawingSurfaceInterop>();
+
+            Console.WriteLine($"CreateSurface alphaMode={alphaMode}");
+
         }
 
         public void Dispose()
