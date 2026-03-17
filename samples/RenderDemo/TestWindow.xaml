@@ -4,9 +4,8 @@
         xmlns:controls="using:ControlSamples"
         xmlns:pages="using:RenderDemo.Pages"
         xmlns:viewModels="using:RenderDemo.ViewModels"
-        Background="Transparent"
-        Title="AvaloniaUI Rendering Test"
-        WindowState="FullScreen">
+        Background="#AFFFFFFF"
+        Title="AvaloniaUI Rendering Test">
   <Grid RowDefinitions="*,Auto">
     <Border >
       <Button Content="Hi" />
@@ -14,8 +13,7 @@
 
     <Rectangle x:Name="TheFakeUI" Grid.Row="0" Width="500" Height="200" Fill="Red"
                Margin="10,10,10,100"
-               VerticalAlignment="Bottom"
-               Effect="blur(100)">
+               VerticalAlignment="Bottom">
       <Rectangle.Styles>
         <Style Selector="Rectangle">
           <Setter Property="StrokeThickness" Value="10"></Setter>
@@ -33,6 +31,22 @@
         </Style>
       </Rectangle.Styles>
     </Rectangle>
+
+    <Grid x:Name="PathGrid" Grid.Row="0">
+      <Grid.Styles>
+        <Style Selector="Grid">
+          <Style.Animations>
+            <Animation Duration="0:0:5.5"
+                       Easing="QuadraticEaseInOut"
+                       IterationCount="Infinite">
+              <KeyFrame Cue="50%">
+                <Setter Property="TranslateTransform.Y" Value="-10"></Setter>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+      </Grid.Styles>
+    </Grid>
 
     <StackPanel Grid.Row="1" Orientation="Horizontal" IsVisible="False">
       <Button x:Name="SetTransparencyButton" Click="SetTransparencyButton_OnClick">Transparency</Button>
