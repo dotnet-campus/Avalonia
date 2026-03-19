@@ -24,6 +24,7 @@ namespace RenderDemo
         public TestWindow()
         {
             InitializeComponent();
+            //TransparencyLevelHint = [WindowTransparencyLevel.None];
 
             Loaded += TestWindow_Loaded;
 

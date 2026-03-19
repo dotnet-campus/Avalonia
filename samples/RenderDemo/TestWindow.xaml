@@ -48,7 +48,7 @@
       </Grid.Styles>
     </Grid>
 
-    <StackPanel Grid.Row="1" Orientation="Horizontal" IsVisible="False">
+    <StackPanel Grid.Row="1" Orientation="Horizontal">
       <Button x:Name="SetTransparencyButton" Click="SetTransparencyButton_OnClick">Transparency</Button>
       <Button x:Name="SetNotTransparencyButton" Click="SetNotTransparencyButton_OnClick">NotTransparency</Button>
     </StackPanel>

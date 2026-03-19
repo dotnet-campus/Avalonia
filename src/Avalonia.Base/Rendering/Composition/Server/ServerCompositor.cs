@@ -154,21 +154,26 @@ namespace Avalonia.Rendering.Composition.Server
 
         void NotifyBatchesProcessed()
         {
-            foreach (var batch in _reusableToNotifyProcessedList) 
-                batch.NotifyProcessed();
+            // Use for loop to avoid enumerator allocation
+            var processedList = _reusableToNotifyProcessedList;
+            for (int i = 0; i < processedList.Count; i++)
+                processedList[i].NotifyProcessed();
 
-            foreach (var batch in _reusableToNotifyProcessedList)
-                _reusableToNotifyRenderedList.Add(batch);
+            var renderedList = _reusableToNotifyRenderedList;
+            for (int i = 0; i < processedList.Count; i++)
+                renderedList.Add(processedList[i]);
 
-            _reusableToNotifyProcessedList.Clear();
+            processedList.Clear();
         }
         
         void NotifyBatchesRendered()
         {
-            foreach (var batch in _reusableToNotifyRenderedList) 
-                batch.NotifyRendered();
+            // Use for loop to avoid enumerator allocation
+            var list = _reusableToNotifyRenderedList;
+            for (int i = 0; i < list.Count; i++)
+                list[i].NotifyRendered();
 
-            _reusableToNotifyRenderedList.Clear();
+            list.Clear();
         }
 
         public void Render() => Render(true);
@@ -195,22 +200,17 @@ namespace Avalonia.Rendering.Composition.Server
         
         private void RenderReentrancySafe(bool catchExceptions)
         {
+            var currentThread = Thread.CurrentThread;
             lock (_lock)
             {
+                _safeThread = currentThread;
                 try
                 {
-                    try
-                    {
-                        _safeThread = Thread.CurrentThread;
-                        RenderCore(catchExceptions);
-                    }
-                    finally
-                    {
-                        NotifyBatchesRendered();
-                    }
+                    RenderCore(catchExceptions);
                 }
                 finally
                 {
+                    NotifyBatchesRendered();
                     _safeThread = null;
                 }
             }
@@ -237,10 +237,13 @@ namespace Avalonia.Rendering.Composition.Server
         
         private void RenderCore(bool catchExceptions)
         {
-            
             UpdateServerTime();
             
             var compositorGlobalPassesElapsed = ExecuteGlobalPasses();
+            
+            // Early return if no targets to render
+            if (_activeTargets.Count == 0)
+                return;
             
             try
             {
@@ -249,8 +252,11 @@ namespace Avalonia.Rendering.Composition.Server
                 RenderInterface.EnsureValidBackendContext();
                 ExecuteServerJobs(_receivedJobQueue);
 
-                foreach (var t in _activeTargets)
+                // Use for loop instead of foreach to avoid enumerator allocation
+                var targets = _activeTargets;
+                for (int i = 0; i < targets.Count; i++)
                 {
+                    var t = targets[i];
                     t.Update(compositorGlobalPassesElapsed);
                     t.Render();
                 }
