@@ -64,6 +64,19 @@ namespace Avalonia.Win32.DirectX
         [MemberNotNull(nameof(_swapChain))]
         private void CreateSurface(PixelSize expectedPixelSize)
         {
+            var isRecreate = _swapChain != null;
+
+            if (isRecreate)
+            {
+                // to clear the old SwapChain
+                if (_renderTexture != null)
+                {
+                    using var d3D11Device = _dxgiDevice.QueryInterface<ID3D11Device>();
+                    using var renderTargetView = d3D11Device.CreateRenderTargetView(_renderTexture.GetNativeIntPtr(), IntPtr.Zero);
+                  
+                }
+            }
+            
             _swapChain?.Dispose();
             _swapChain = null;
 
@@ -132,6 +145,11 @@ namespace Avalonia.Win32.DirectX
                     null,
                     null
                 );
+            }
+
+            if (isRecreate)
+            {
+                UnmanagedMethods.InvalidateRect(windowInfo.Handle, null, true);
             }
 
             _size = size;

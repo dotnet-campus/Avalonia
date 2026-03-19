@@ -548,3 +548,19 @@ interface ID3D11Texture2D : IUnknown
     // Just a marker interface for now
 };
 
+[uuid(1841e5c8-16b0-489b-bcc8-44cfb0d5deae)]
+interface ID3D11DeviceChild : IUnknown
+{
+    void GetDevice(void** ppDevice);
+    HRESULT GetPrivateData(
+        [annotation("_In_")] REFGUID guid,
+        [annotation("_Inout_")] UINT* pDataSize,
+        void* pData);
+    HRESULT SetPrivateData(
+        [annotation("_In_")] REFGUID guid,
+        [annotation("_In_")] UINT DataSize,
+        void* pData);
+    HRESULT SetPrivateDataInterface(
+        [annotation("_In_")] REFGUID guid,
+        [annotation("_In_opt_")] IUnknown* pData);
+};
