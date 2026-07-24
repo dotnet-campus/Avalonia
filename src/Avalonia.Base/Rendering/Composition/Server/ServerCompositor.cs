@@ -229,8 +229,9 @@ namespace Avalonia.Rendering.Composition.Server
                 if(!RenderInterface.IsReady)
                     return;
 
-                if (_activeTargets.Count == 0)
+                if (_activeTargets.Count == 0 && RenderInterface.CanReleaseToReduceMemory)
                 {
+                    // No windows visible → release render resources to save memory. When a window shows up again later, the whole pipeline gets rebuilt.
                     RenderInterface.Release();
                 }
                 else
