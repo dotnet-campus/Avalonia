@@ -800,38 +800,31 @@ namespace Avalonia.X11
 
             if (property == _x11.Atoms._NET_WM_STATE)
             {
-                WindowState state = WindowState.Normal;
                 var atoms = hasValue
                     ? XGetWindowPropertyAsIntPtrArray(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE,
                           (IntPtr)Atom.XA_ATOM)
                       ?? []
                     : [];
                 int maximized = 0;
+                bool hasMinimized = false, hasFullscreen = false;
                 foreach (var atom in atoms)
                 {
                     if (atom == _x11.Atoms._NET_WM_STATE_HIDDEN)
-                    {
-                        state = WindowState.Minimized;
-                        break;
-                    }
-
-                    if(atom == _x11.Atoms._NET_WM_STATE_FULLSCREEN)
-                    {
-                        state = WindowState.FullScreen;
-                        break;
-                    }
+                        hasMinimized = true;
 
                     if (atom == _x11.Atoms._NET_WM_STATE_MAXIMIZED_HORZ ||
                         atom == _x11.Atoms._NET_WM_STATE_MAXIMIZED_VERT)
-                    {
                         maximized++;
-                        if (maximized == 2)
-                        {
-                            state = WindowState.Maximized;
-                            break;
-                        }
-                    }
+
+                    if (atom == _x11.Atoms._NET_WM_STATE_FULLSCREEN)
+                        hasFullscreen = true;
                 }
+
+                var state = hasMinimized ? WindowState.Minimized
+                    : hasFullscreen ? WindowState.FullScreen
+                    : maximized == 2 ? WindowState.Maximized
+                    : WindowState.Normal;
+
                 if (_lastWindowState != state)
                 {
                     _lastWindowState = state;
