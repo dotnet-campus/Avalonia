@@ -57,7 +57,7 @@ public partial class Build
         public bool IsNuGetRelease { get; }
         public bool PublishTestResults { get; }
         public string Version { get; set; }
-        public const string LocalBuildVersion = "11.3.6-hotfix.4";
+        public const string LocalBuildVersion = "11.3.6-hotfix.5";
         public bool IsPackingToLocalCache { get; private set; }
 
         public AbsolutePath ArtifactsDir { get; }
