@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia.Platform;
 using Avalonia.Reactive;
@@ -82,6 +83,14 @@ internal class PlatformRenderInterfaceContextManager
         EnsureValidBackendContext();
         return _backend!.CreateRenderTarget(surfaces);
     }
+
+    /// <summary>
+    /// Releases the backend context and GPU context if they exist, and invokes the ContextDisposed event. This optimization is Windows-only. On Linux, once you release it, you can't recreate the renderer.
+    /// </summary>
+    public bool CanReleaseToReduceMemory
+        => _canReleaseToReduceMemory ??= RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+    private bool? _canReleaseToReduceMemory;
 
     public void Release()
     {
